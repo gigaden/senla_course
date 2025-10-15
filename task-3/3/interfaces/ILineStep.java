@@ -1,4 +1,5 @@
-public interface ILineStep {
+package interfaces;
 
+public interface ILineStep {
     IProductPart buildProductPart();
 }

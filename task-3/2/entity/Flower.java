@@ -1,7 +1,13 @@
+package entity;
+
 public abstract class Flower {
 
     private String name;
     private Double cost;
+
+    public Flower(String name) {
+        this.name = name;
+    }
 
     public String getName() {
         return name;

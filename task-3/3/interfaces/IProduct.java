@@ -1,3 +1,5 @@
+package interfaces;
+
 public interface IProduct {
 
     void installFirstPart(IProductPart iProductPart);

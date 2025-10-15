@@ -1,4 +1,4 @@
-package util;
+package service;
 
 import entity.Chamomile;
 import entity.Flower;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class GenerateBouquet {
+public class BouquetService {
 
     private static final List<Flower> flowers = List.of(
             new Rose(100),
@@ -19,9 +19,9 @@ public class GenerateBouquet {
             new Chamomile(80),
             new Snowdrop(150),
             new Tulip(90)
-            );
+    );
 
-    public static List<Flower> generate(int numOfFlowers) {
+    public static List<Flower> generateBouquet(int numOfFlowers) {
         Random rnd = new Random();
         List<Flower> bouquet = new ArrayList<>();
         for (int i = 0; i < numOfFlowers; i++) {
@@ -44,7 +44,7 @@ public class GenerateBouquet {
 
     public static void printBouquet(List<Flower> bouquet, double bouquetCost) {
         System.out.printf("Ваш букет состоит из %d цветов, в него входит:\n", bouquet.size());
-        for (Flower flower: bouquet) {
+        for (Flower flower : bouquet) {
             System.out.println(flower.getName());
         }
         System.out.printf("Его стоимость: %.2f", bouquetCost);

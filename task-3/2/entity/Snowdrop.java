@@ -5,7 +5,7 @@ import util.FlowerName;
 public class Snowdrop extends Flower {
 
     public Snowdrop(double cost) {
-        super(FlowerName.LOTUS);
+        super(FlowerName.SNOWDROP);
         setCost(cost);
     }
 

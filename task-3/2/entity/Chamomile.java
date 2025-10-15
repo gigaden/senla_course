@@ -1,9 +1,11 @@
 package entity;
 
+import util.FlowerName;
+
 public class Chamomile extends Flower {
 
     public Chamomile(double cost) {
-        super("Tulip");
+        super(FlowerName.CHAMOMILE);
         setCost(cost);
     }
 
