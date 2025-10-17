@@ -1,6 +1,7 @@
-package ebookstore.repository;
+package ebookstore.repository.implement;
 
 import ebookstore.model.Client;
+import ebookstore.repository.ClientRepository;
 
 import java.util.HashMap;
 import java.util.Map;

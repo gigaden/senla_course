@@ -1,7 +1,7 @@
 package ebookstore.repository;
 
 import ebookstore.model.Order;
-import ebookstore.model.OrderStatus;
+import ebookstore.model.enums.OrderStatus;
 
 import java.util.Map;
 

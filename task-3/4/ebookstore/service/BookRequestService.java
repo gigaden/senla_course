@@ -1,17 +1,15 @@
-package ebookstore.repository;
+package ebookstore.service;
 
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 
-import java.util.Map;
+public interface BookRequestService {
 
-public interface BookRequestRepository {
+    BookRequest createRequest(BookRequest request);
 
     BookRequest getRequestById(long requestId);
 
-    Map<Long, BookRequest> getAllRequests();
-
-    BookRequest saveRequest(BookRequest request);
-
     void changeRequestStatus(long requestId, BookRequestStatus status);
+
+    boolean requestIsOpenForBookWithId(long bookId);
 }

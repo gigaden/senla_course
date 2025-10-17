@@ -1,8 +1,8 @@
-package ebookstore.service;
+package ebookstore.service.implement;
 
 import ebookstore.model.Client;
 import ebookstore.repository.ClientRepository;
-import ebookstore.repository.InMemoryClientRepository;
+import ebookstore.service.ClientService;
 
 import java.util.Collection;
 

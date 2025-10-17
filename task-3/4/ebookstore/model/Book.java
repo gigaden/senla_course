@@ -1,5 +1,7 @@
 package ebookstore.model;
 
+import ebookstore.model.enums.BookStatus;
+
 public class Book {
 
     private long id;

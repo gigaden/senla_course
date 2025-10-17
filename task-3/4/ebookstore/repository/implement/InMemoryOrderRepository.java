@@ -1,11 +1,10 @@
-package ebookstore.repository;
+package ebookstore.repository.implement;
 
 import ebookstore.model.Order;
-import ebookstore.model.OrderStatus;
+import ebookstore.model.enums.OrderStatus;
+import ebookstore.repository.OrderRepository;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class InMemoryOrderRepository implements OrderRepository {

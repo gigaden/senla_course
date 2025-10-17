@@ -1,5 +1,7 @@
 package ebookstore.model;
 
+import ebookstore.model.enums.OrderStatus;
+
 import java.time.LocalDateTime;
 
 public class Order {

@@ -1,4 +1,4 @@
-package ebookstore.model;
+package ebookstore.model.enums;
 
 public enum BookStatus {
     AVAILABLE,

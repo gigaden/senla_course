@@ -1,8 +1,7 @@
 package ebookstore.controller;
 
-import ebookstore.model.Client;
 import ebookstore.model.Order;
-import ebookstore.model.OrderStatus;
+import ebookstore.model.enums.OrderStatus;
 import ebookstore.service.OrderService;
 
 public class ConsoleOrderController {

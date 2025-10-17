@@ -1,9 +1,9 @@
-package ebookstore.service;
+package ebookstore.service.implement;
 
 import ebookstore.model.Book;
-import ebookstore.model.BookStatus;
+import ebookstore.model.enums.BookStatus;
 import ebookstore.repository.BookRepository;
-import ebookstore.repository.InMemoryBookRepository;
+import ebookstore.service.BookService;
 
 import java.util.Collection;
 

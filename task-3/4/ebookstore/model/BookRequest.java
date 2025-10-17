@@ -1,5 +1,7 @@
 package ebookstore.model;
 
+import ebookstore.model.enums.BookRequestStatus;
+
 import java.time.LocalDateTime;
 
 public class BookRequest {
@@ -8,16 +10,15 @@ public class BookRequest {
 
     private long bookId;
 
-    private long userId;
+    private long clientId;
 
     private BookRequestStatus requestStatus;
 
     private final LocalDateTime createdOn;
 
-    public BookRequest(long bookId, long userId, BookRequestStatus requestStatus) {
+    public BookRequest(long bookId, long clientId) {
         this.bookId = bookId;
-        this.userId = userId;
-        this.requestStatus = requestStatus;
+        this.clientId = clientId;
         createdOn = LocalDateTime.now();
     }
 
@@ -41,12 +42,12 @@ public class BookRequest {
         this.bookId = bookId;
     }
 
-    public long getUserId() {
-        return userId;
+    public long getClientId() {
+        return clientId;
     }
 
-    public void setUserId(long userId) {
-        this.userId = userId;
+    public void setClientId(long userId) {
+        this.clientId = userId;
     }
 
     public BookRequestStatus getRequestStatus() {
@@ -55,5 +56,16 @@ public class BookRequest {
 
     public void setRequestStatus(BookRequestStatus requestStatus) {
         this.requestStatus = requestStatus;
+    }
+
+    @Override
+    public String toString() {
+        return "BookRequest{" +
+                "requestId=" + requestId +
+                ", bookId=" + bookId +
+                ", clientId=" + clientId +
+                ", requestStatus=" + requestStatus +
+                ", createdOn=" + createdOn +
+                '}';
     }
 }

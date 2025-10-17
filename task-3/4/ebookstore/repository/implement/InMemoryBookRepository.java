@@ -1,6 +1,7 @@
-package ebookstore.repository;
+package ebookstore.repository.implement;
 
 import ebookstore.model.Book;
+import ebookstore.repository.BookRepository;
 
 import java.util.HashMap;
 import java.util.Map;
