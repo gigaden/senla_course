@@ -1,5 +1,6 @@
 package ebookstore.service.implement;
 
+import ebookstore.dto.BookRequestDto;
 import ebookstore.model.Book;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
@@ -8,6 +9,13 @@ import ebookstore.repository.BookRequestRepository;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.BookService;
 import ebookstore.service.ClientService;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BookRequestServiceImpl implements BookRequestService {
 
@@ -56,7 +64,7 @@ public class BookRequestServiceImpl implements BookRequestService {
     @Override
     public boolean requestIsOpenForBookWithId(long bookId) {
         boolean flag = false;
-        for (BookRequest request : requestRepository.getAllRequests().values()) {
+        for (BookRequest request : requestRepository.getAllRequests()) {
             if (request.getBookId() == bookId && request.getRequestStatus().equals(BookRequestStatus.OPENED)) {
                 flag = true;
                 break;
@@ -66,8 +74,40 @@ public class BookRequestServiceImpl implements BookRequestService {
         return flag;
     }
 
+    /**
+     * Не совсем понятная формулировка в тз "Список запросов на книгу (сортировать по количеству запросов)",
+     * т.к. странно сортировать запросы по количеству запросов. Если бы нужно было сортировать книги по количеству
+     * запросов на них, тогда понятно. В любом случае сделал как понял), но через запросы sql это было бы сделать проще.
+     * Плюс появляются дубли, точнее почти одинаковые дто.
+     */
+    @Override
+    public Collection<BookRequestDto> getSortedRequest(Comparator<BookRequestDto> comparator) {
+        List<BookRequest> bookRequests = new ArrayList<>(requestRepository.getAllRequests());
+        List<BookRequestDto> bookRequestDtos = makeRequestDto(bookRequests);
+        bookRequestDtos.sort(comparator);
+
+        return bookRequestDtos;
+    }
+
+    private List<BookRequestDto> makeRequestDto(List<BookRequest> bookRequests) {
+        List<BookRequestDto> response = new ArrayList<>();
+
+        Map<Long, Long> requestCounts = new HashMap<>();
+        for (BookRequest br : bookRequests) {
+            requestCounts.put(br.getBookId(), requestCounts.getOrDefault(br.getBookId(), 0L) + 1);
+        }
+
+        for (BookRequest br : bookRequests) {
+            Book book = bookService.getBookById(br.getBookId());
+            BookRequestDto bookRequestDto = new BookRequestDto(br, requestCounts.get(br.getBookId()), book.getTitle());
+            response.add(bookRequestDto);
+        }
+
+        return response;
+    }
+
     public void checkRequestIsExist(long requestId) {
-        if (!requestRepository.getAllRequests().containsKey(requestId)) {
+        if (!requestRepository.checkRequestIsExist(requestId)) {
             System.out.printf("Запроса с id = %d не существует", requestId);
             throw new RuntimeException();
         }

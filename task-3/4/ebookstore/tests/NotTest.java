@@ -12,19 +12,21 @@ import ebookstore.model.enums.OrderStatus;
 import ebookstore.repository.BookRepository;
 import ebookstore.repository.BookRequestRepository;
 import ebookstore.repository.ClientRepository;
+import ebookstore.repository.OrderRepository;
 import ebookstore.repository.implement.InMemoryBookRepository;
 import ebookstore.repository.implement.InMemoryBookRequestRepository;
 import ebookstore.repository.implement.InMemoryClientRepository;
 import ebookstore.repository.implement.InMemoryOrderRepository;
-import ebookstore.repository.OrderRepository;
 import ebookstore.service.BookRequestService;
-import ebookstore.service.implement.BookRequestServiceImpl;
 import ebookstore.service.BookService;
-import ebookstore.service.implement.BookServiceImpl;
 import ebookstore.service.ClientService;
-import ebookstore.service.implement.ClientServiceImpl;
 import ebookstore.service.OrderService;
+import ebookstore.service.implement.BookRequestServiceImpl;
+import ebookstore.service.implement.BookServiceImpl;
+import ebookstore.service.implement.ClientServiceImpl;
 import ebookstore.service.implement.OrderServiceImpl;
+
+import java.time.LocalDate;
 
 public final class NotTest {
 
@@ -46,28 +48,33 @@ public final class NotTest {
 
     static {
         bookRepository = InMemoryBookRepository.getInstance();
-        bookService = new BookServiceImpl(bookRepository);
-        bookController = new ConsoleBookController(bookService);
-
         clientRepository = InMemoryClientRepository.getInstance();
-        clientService = new ClientServiceImpl(clientRepository);
-        clientController = new ConsoleClientController(clientService);
-
         orderRepository = InMemoryOrderRepository.getInstance();
         requestRepository = InMemoryBookRequestRepository.getInstance();
+
+        clientService = new ClientServiceImpl(clientRepository);
+        bookService = new BookServiceImpl(bookRepository, orderRepository);
         requestService = new BookRequestServiceImpl(requestRepository, bookService, clientService);
         orderService = new OrderServiceImpl(clientService, orderRepository, requestService);
+
+        bookController = new ConsoleBookController(bookService);
+        clientController = new ConsoleClientController(clientService);
         orderController = new ConsoleOrderController(orderService);
         requestController = new ConsoleBookRequestController(requestService);
 
     }
 
     public static void check() {
-        Book book = new Book("book1", "author1", "description1");
-        Book book2 = new Book("book2", "author2", "description2");
-        Book book3 = new Book("book3", "author3", "description3");
-        Book book4 = new Book("book4", "author4", "description4");
-        Book book5 = new Book("book5", "author5", "description5");
+        Book book = new Book("e_book1", "author1", "description1",
+                LocalDate.of(2022, 5, 11), 100L);
+        Book book2 = new Book("a_book2", "author2", "description2",
+                LocalDate.of(2019, 5, 11), 80L);
+        Book book3 = new Book("d_book3", "author3", "description3",
+                LocalDate.of(2025, 5, 11), 50L);
+        Book book4 = new Book("c_book4", "author4", "description4",
+                LocalDate.of(2000, 5, 11), 700L);
+        Book book5 = new Book("b_book5", "author5", "description5",
+                LocalDate.of(1800, 5, 11), 650L);
 
         // чекаем книги
         bookController.saveBook(book);
@@ -102,6 +109,15 @@ public final class NotTest {
         orderController.cancelOrder(0);
         orderController.getOrder(0);
 
+        Order order1 = new Order(book2, client);
+        orderController.saveOrder(order1);
+        Order order2 = new Order(book4, client);
+        orderController.saveOrder(order2);
+        orderController.changeOrderStatus(2, OrderStatus.COMPLETED);
+        Order order3 = new Order(book3, client);
+        orderController.saveOrder(order3);
+        orderController.changeOrderStatus(3, OrderStatus.COMPLETED);
+
         // чекаем запросы
         BookRequest bookRequest = new BookRequest(0, 0);
 
@@ -113,5 +129,56 @@ public final class NotTest {
 
         bookController.changeBookStatusToAbsent(0);
         requestController.createRequest(bookRequest);
+
+        // проверяем сортировку по алфавиту
+        bookController.getAllBooks();
+        bookController.getAllBooksByAlphabet();
+
+        // проверяем сортировку по дате выпуска
+        bookController.getAllBooks();
+        bookController.getAllBooksByDateOfPublish();
+
+        // проверяем сортировку по цене
+        bookController.getAllBooks();
+        bookController.getAllBooksByPrice();
+
+        // проверяем сортировку по наличию
+        bookController.getAllBooks();
+        bookController.getAllBooksByAvailability();
+
+        // проверяем заказы
+
+        // проверяем сортировку по дате завершения
+        orderController.getAllOrdersByDateOfCompleting();
+
+        // проверяем сортировку по цене
+        orderController.getAllOrdersByPrice();
+
+        // проверяем сортировку по статусу
+        orderController.getAllOrdersByStatus();
+
+        // проверяем запросы
+        Client client1 = new Client("client1", "clientSurname",
+                "client@ya.ru", "login", "password");
+        Client client2 = new Client("client2", "clientSurname",
+                "client@ya.ru", "login", "password");
+        Client client3 = new Client("client3", "clientSurname",
+                "client@ya.ru", "login", "password");
+        clientController.saveClient(client1);
+        clientController.saveClient(client2);
+        clientController.saveClient(client3);
+        bookController.changeBookStatusToAbsent(3);
+        bookController.changeBookStatusToAbsent(2);
+        BookRequest bookRequest1 = new BookRequest(0, 1);
+        BookRequest bookRequest2 = new BookRequest(0, 2);
+        BookRequest bookRequest3 = new BookRequest(3, 3);
+        BookRequest bookRequest4 = new BookRequest(2, 0);
+        requestController.createRequest(bookRequest1);
+        requestController.createRequest(bookRequest2);
+        requestController.createRequest(bookRequest3);
+        requestController.createRequest(bookRequest4);
+        requestController.getAllBookRequestByCountOfRequest();
+        requestController.getAllBookRequestByTitleOfBookByAlphabet();
+
     }
 }

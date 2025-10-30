@@ -1,8 +1,12 @@
 package ebookstore.controller;
 
+import ebookstore.dto.BookRequestDto;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.service.BookRequestService;
+
+import java.util.Collection;
+import java.util.Comparator;
 
 public class ConsoleBookRequestController {
 
@@ -29,5 +33,19 @@ public class ConsoleBookRequestController {
         System.out.printf("Получаем запрос с id = %d\n", requestId);
         BookRequest request = requestService.getRequestById(requestId);
         System.out.printf("Получили запрос: %s\n", request);
+    }
+
+    public void getAllBookRequestByCountOfRequest() {
+        System.out.println("Получаем все запросы, отсортированные по количеству запросов");
+        Collection<BookRequestDto> bookRequestDtos = requestService
+                .getSortedRequest(Comparator.comparing(BookRequestDto::getRequestCount).reversed());
+        System.out.printf("Получили все запросы по количеству запросов: %s\n", bookRequestDtos);
+    }
+
+    public void getAllBookRequestByTitleOfBookByAlphabet() {
+        System.out.println("Получаем все запросы, отсортированные по алфавиту");
+        Collection<BookRequestDto> bookRequestDtos = requestService
+                .getSortedRequest(Comparator.comparing(BookRequestDto::getBookTitle));
+        System.out.printf("Получили все запросы по алфавиту: %s\n", bookRequestDtos);
     }
 }

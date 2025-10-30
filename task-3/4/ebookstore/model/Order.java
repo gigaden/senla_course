@@ -10,6 +10,7 @@ public class Order {
     private Book book;
     private Client client;
     private final LocalDateTime createdOn;
+    private LocalDateTime completedOn;
     private OrderStatus orderStatus;
 
     public Order(Book book, Client client) {
@@ -55,14 +56,23 @@ public class Order {
         this.client = client;
     }
 
+    public LocalDateTime getCompletedOn() {
+        return completedOn;
+    }
+
+    public void setCompletedOn(LocalDateTime completedOn) {
+        this.completedOn = completedOn;
+    }
+
     @Override
     public String toString() {
         return "Order{" +
-                "id=" + id +
-                ", book=" + book +
-                ", client=" + client +
-                ", createdOn=" + createdOn +
-                ", orderStatus=" + orderStatus +
-                '}';
+               "id=" + id +
+               ", book=" + book +
+               ", client=" + client +
+               ", createdOn=" + createdOn +
+               ", completedOn=" + completedOn +
+               ", orderStatus=" + orderStatus +
+               '}';
     }
 }
