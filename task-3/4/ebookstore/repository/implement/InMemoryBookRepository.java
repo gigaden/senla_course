@@ -3,6 +3,7 @@ package ebookstore.repository.implement;
 import ebookstore.model.Book;
 import ebookstore.repository.BookRepository;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,8 +27,8 @@ public class InMemoryBookRepository implements BookRepository {
         return instance;
     }
 
-    public Map<Long, Book> getAllBooks() {
-        return books;
+    public Collection<Book> getAllBooks() {
+        return books.values();
     }
 
     @Override
@@ -57,6 +58,11 @@ public class InMemoryBookRepository implements BookRepository {
     @Override
     public void deleteBook(long bookId) {
         books.remove(bookId);
+    }
+
+    @Override
+    public boolean checkBookIsExist(long bookId) {
+        return books.containsKey(bookId);
     }
 
     private long generateId() {

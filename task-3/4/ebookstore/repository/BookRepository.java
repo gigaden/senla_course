@@ -2,11 +2,11 @@ package ebookstore.repository;
 
 import ebookstore.model.Book;
 
-import java.util.Map;
+import java.util.Collection;
 
 public interface BookRepository {
 
-    Map<Long, Book> getAllBooks();
+    Collection<Book> getAllBooks();
 
     Book saveBook(Book book);
 
@@ -15,4 +15,6 @@ public interface BookRepository {
     Book updateBook(Book book);
 
     void deleteBook(long bookId);
+
+    boolean checkBookIsExist(long bookId);
 }

@@ -4,6 +4,7 @@ import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.repository.BookRequestRepository;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,8 +36,8 @@ public class InMemoryBookRequestRepository implements BookRequestRepository {
     }
 
     @Override
-    public Map<Long, BookRequest> getAllRequests() {
-        return requests;
+    public Collection<BookRequest> getAllRequests() {
+        return requests.values();
     }
 
     @Override
@@ -52,6 +53,11 @@ public class InMemoryBookRequestRepository implements BookRequestRepository {
     public void changeRequestStatus(long requestId, BookRequestStatus status) {
         BookRequest request = requests.get(requestId);
         request.setRequestStatus(status);
+    }
+
+    @Override
+    public boolean checkRequestIsExist(long bookId) {
+        return requests.containsKey(bookId);
     }
 
     private long generateId() {

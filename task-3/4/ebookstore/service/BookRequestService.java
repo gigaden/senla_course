@@ -1,7 +1,11 @@
 package ebookstore.service;
 
+import ebookstore.dto.BookRequestDto;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
+
+import java.util.Collection;
+import java.util.Comparator;
 
 public interface BookRequestService {
 
@@ -12,4 +16,6 @@ public interface BookRequestService {
     void changeRequestStatus(long requestId, BookRequestStatus status);
 
     boolean requestIsOpenForBookWithId(long bookId);
+
+    public Collection<BookRequestDto> getSortedRequest(Comparator<BookRequestDto> comparator);
 }

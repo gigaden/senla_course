@@ -4,6 +4,7 @@ import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.repository.OrderRepository;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,8 +34,8 @@ public class InMemoryOrderRepository implements OrderRepository {
     }
 
     @Override
-    public Map<Long, Order> getAllOrders() {
-        return orders;
+    public Collection<Order> getAllOrders() {
+        return orders.values();
     }
 
     @Override
@@ -44,6 +45,11 @@ public class InMemoryOrderRepository implements OrderRepository {
         orders.put(orderId, order);
 
         return order;
+    }
+
+    @Override
+    public boolean checkOrderIsExist(long orderId) {
+        return orders.containsKey(orderId);
     }
 
     @Override
