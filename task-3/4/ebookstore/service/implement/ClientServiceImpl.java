@@ -29,9 +29,11 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client getClientById(long clientId) {
-        checkClientIsExist(clientId);
 
-        return clientRepository.getClient(clientId);
+        return clientRepository.getClient(clientId).orElseThrow(() -> {
+            System.out.printf("Клиента с id = %s не существует\n", clientId);
+            return new RuntimeException();
+        });
     }
 
     @Override

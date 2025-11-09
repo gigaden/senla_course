@@ -4,10 +4,11 @@ import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface OrderRepository {
 
-    Order getOrderById(long orderId);
+    Optional<Order> getOrderById(long orderId);
 
     Collection<Order> getAllOrders();
 

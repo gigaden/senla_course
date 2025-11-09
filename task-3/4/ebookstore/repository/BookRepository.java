@@ -3,6 +3,7 @@ package ebookstore.repository;
 import ebookstore.model.Book;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface BookRepository {
 
@@ -10,7 +11,7 @@ public interface BookRepository {
 
     Book saveBook(Book book);
 
-    Book getBook(long bookId);
+    Optional<Book> getBook(long bookId);
 
     Book updateBook(Book book);
 

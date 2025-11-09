@@ -5,6 +5,7 @@ import ebookstore.repository.ClientRepository;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class InMemoryClientRepository implements ClientRepository {
 
@@ -40,14 +41,14 @@ public class InMemoryClientRepository implements ClientRepository {
     }
 
     @Override
-    public Client getClient(long clientId) {
+    public Optional<Client> getClient(long clientId) {
 
-        return clients.get(clientId);
+        return Optional.ofNullable(clients.get(clientId));
     }
 
     @Override
     public Client updateClient(Client client) {
-        Client oldClient = getClient(client.getId());
+        Client oldClient = clients.get(client.getId());
 
         Client newClient = setNewClientsField(oldClient, client);
 

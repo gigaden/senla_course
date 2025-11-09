@@ -4,10 +4,11 @@ import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface BookRequestRepository {
 
-    BookRequest getRequestById(long requestId);
+    Optional<BookRequest> getRequestById(long requestId);
 
     Collection<BookRequest> getAllRequests();
 

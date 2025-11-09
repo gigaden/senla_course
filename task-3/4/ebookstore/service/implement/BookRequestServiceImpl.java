@@ -49,10 +49,10 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     @Override
     public BookRequest getRequestById(long requestId) {
-        checkRequestIsExist(requestId);
-        BookRequest request = requestRepository.getRequestById(requestId);
-
-        return request;
+        return requestRepository.getRequestById(requestId).orElseThrow(() -> {
+            System.out.printf("Запроса с id = %s не существует\n", requestId);
+            return new RuntimeException();
+        });
     }
 
     @Override
@@ -63,15 +63,9 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     @Override
     public boolean requestIsOpenForBookWithId(long bookId) {
-        boolean flag = false;
-        for (BookRequest request : requestRepository.getAllRequests()) {
-            if (request.getBookId() == bookId && request.getRequestStatus().equals(BookRequestStatus.OPENED)) {
-                flag = true;
-                break;
-            }
-        }
-
-        return flag;
+        return requestRepository.getAllRequests().stream()
+                .anyMatch(r -> r.getBookId() == bookId &&
+                               r.getRequestStatus().equals(BookRequestStatus.OPENED));
     }
 
     /**
