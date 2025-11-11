@@ -8,7 +8,7 @@ javac -d target **/*.java
 echo "файлы скомпилены"
 cd target
 echo "переходим в каталог и создаём джарник"
-jar cfe ../ebookstore.jar ebookstore.EBookStoreApp .
+jar cfe ../ebookstore.jar ebookstore.EBookStoreAppConsole .
 echo "джарник создан"
 echo "если позвонят из Пентагона, то меня нет дома..."
 cd ..

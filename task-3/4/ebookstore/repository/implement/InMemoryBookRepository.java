@@ -6,6 +6,7 @@ import ebookstore.repository.BookRepository;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class InMemoryBookRepository implements BookRepository {
 
@@ -41,14 +42,14 @@ public class InMemoryBookRepository implements BookRepository {
     }
 
     @Override
-    public Book getBook(long bookId) {
+    public Optional<Book> getBook(long bookId) {
 
-        return books.get(bookId);
+        return Optional.ofNullable(books.get(bookId));
     }
 
     @Override
     public Book updateBook(Book book) {
-        Book oldBook = getBook(book.getId());
+        Book oldBook = books.get(book.getId());
 
         Book newBook = setNewBooksField(oldBook, book);
 

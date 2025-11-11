@@ -7,6 +7,7 @@ import ebookstore.repository.BookRequestRepository;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class InMemoryBookRequestRepository implements BookRequestRepository {
 
@@ -29,10 +30,8 @@ public class InMemoryBookRequestRepository implements BookRequestRepository {
     }
 
     @Override
-    public BookRequest getRequestById(long requestId) {
-        BookRequest request = requests.get(requestId);
-
-        return request;
+    public Optional<BookRequest> getRequestById(long requestId) {
+        return Optional.ofNullable(requests.get(requestId));
     }
 
     @Override

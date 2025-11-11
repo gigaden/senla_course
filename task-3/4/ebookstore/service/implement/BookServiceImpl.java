@@ -49,9 +49,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getBookById(long bookId) {
-        checkBookIsExist(bookId);
-
-        return bookRepository.getBook(bookId);
+        return bookRepository.getBook(bookId).orElseThrow(() -> {
+            System.out.printf("Книги с id = %s не существует\n", bookId);
+            return new RuntimeException();
+        });
     }
 
     @Override
@@ -108,7 +109,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public BookDescriptionDto getBookDescription(long bookId) {
         checkBookIsExist(bookId);
-        Book book = bookRepository.getBook(bookId);
+        Book book = getBookById(bookId);
         return BookDescriptionDto.fromBook(book);
     }
 

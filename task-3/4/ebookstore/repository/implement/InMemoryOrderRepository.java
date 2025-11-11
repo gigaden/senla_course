@@ -7,6 +7,7 @@ import ebookstore.repository.OrderRepository;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class InMemoryOrderRepository implements OrderRepository {
 
@@ -29,8 +30,8 @@ public class InMemoryOrderRepository implements OrderRepository {
     }
 
     @Override
-    public Order getOrderById(long orderId) {
-        return orders.get(orderId);
+    public Optional<Order> getOrderById(long orderId) {
+        return Optional.ofNullable(orders.get(orderId));
     }
 
     @Override

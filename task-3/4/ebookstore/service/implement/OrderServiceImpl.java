@@ -43,9 +43,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order getOrderById(long orderId) {
-        checkOrderIsExist(orderId);
-
-        return orderRepository.getOrderById(orderId);
+        return orderRepository.getOrderById(orderId).orElseThrow(() -> {
+            System.out.printf("Заказа с id = %s не существует\n", orderId);
+            return new RuntimeException();
+        });
     }
 
     @Override
@@ -66,7 +67,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void changeStatus(long orderId, OrderStatus orderStatus) {
         checkOrderIsExist(orderId);
-        Order order = orderRepository.getOrderById(orderId);
+        Order order = getOrderById(orderId);
 
         // чекаем есть ли запросы на эту книгу, если выбран статус "Завершить заказ"
         if (orderStatus.equals(OrderStatus.COMPLETED)) {
@@ -91,53 +92,40 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Collection<Order> getCompletedOrdersInPeriod(LocalDateTime start, LocalDateTime end, Comparator<Order> comparator) {
-        List<Order> completedOrders = new ArrayList<>();
-        Collection<Order> allOrders = orderRepository.getAllOrders();
 
-        for (Order order : allOrders) {
-            if (order.getOrderStatus().equals(OrderStatus.COMPLETED)
-                && order.getCompletedOn() != null
-                && !order.getCompletedOn().isBefore(start)
-                && !order.getCompletedOn().isAfter(end)) {
-                completedOrders.add(order);
-            }
-        }
+        Collection<Order> allOrders = orderRepository.getAllOrders().stream()
+                .filter(o -> o.getOrderStatus().equals(OrderStatus.COMPLETED))
+                .filter(o -> o.getCompletedOn() != null)
+                .filter(o -> !o.getCompletedOn().isBefore(start))
+                .filter(o -> !o.getCompletedOn().isAfter(end))
+                .sorted(comparator)
+                .toList();
 
-        completedOrders.sort(comparator);
-
-        return List.copyOf(completedOrders);
+        return allOrders;
     }
 
     @Override
     public double getEarnedAmountInPeriod(LocalDateTime start, LocalDateTime end) {
-        double totalAmount = 0.0;
-        Collection<Order> allOrders = orderRepository.getAllOrders();
 
-        for (Order order : allOrders) {
-            if (order.getOrderStatus().equals(OrderStatus.COMPLETED)
-                && order.getCompletedOn() != null
-                && !order.getCompletedOn().isBefore(start)
-                && !order.getCompletedOn().isAfter(end)) {
-                totalAmount += order.getBook().getPrice();
-            }
-        }
+        double totalAmount = orderRepository.getAllOrders().stream()
+                .filter(order -> order.getOrderStatus().equals(OrderStatus.COMPLETED))
+                .filter(order -> order.getCompletedOn() != null)
+                .filter(order -> !order.getCompletedOn().isBefore(start))
+                .filter(order -> !order.getCompletedOn().isAfter(end))
+                .mapToDouble(order -> order.getBook().getPrice())
+                .sum();
 
         return totalAmount;
     }
 
     @Override
     public int getCompletedOrdersCountInPeriod(LocalDateTime start, LocalDateTime end) {
-        int count = 0;
-        Collection<Order> allOrders = orderRepository.getAllOrders();
-
-        for (Order order : allOrders) {
-            if (order.getOrderStatus().equals(OrderStatus.COMPLETED)
-                && order.getCompletedOn() != null
-                && !order.getCompletedOn().isBefore(start)
-                && !order.getCompletedOn().isAfter(end)) {
-                count++;
-            }
-        }
+        int count = (int) orderRepository.getAllOrders().stream()
+                .filter(order -> order.getOrderStatus().equals(OrderStatus.COMPLETED))
+                .filter(order -> order.getCompletedOn() != null)
+                .filter(order -> !order.getCompletedOn().isBefore(start))
+                .filter(order -> !order.getCompletedOn().isAfter(end))
+                .count();
 
         return count;
     }
@@ -146,7 +134,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderDetailsDto getOrderDetails(long orderId) {
         checkOrderIsExist(orderId);
 
-        Order order = orderRepository.getOrderById(orderId);
+        Order order = getOrderById(orderId);
         Client client = clientService.getClientById(order.getClient().getId());
         Book book = order.getBook();
 

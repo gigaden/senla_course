@@ -3,6 +3,7 @@ package ebookstore.repository;
 import ebookstore.model.Client;
 
 import java.util.Map;
+import java.util.Optional;
 
 public interface ClientRepository {
 
@@ -10,7 +11,7 @@ public interface ClientRepository {
 
     Client saveClient(Client client);
 
-    Client getClient(long clientId);
+    Optional<Client> getClient(long clientId);
 
     Client updateClient(Client client);
 
