@@ -4,6 +4,9 @@ import ebookstore.controller.ConsoleBookController;
 import ebookstore.controller.ConsoleBookRequestController;
 import ebookstore.controller.ConsoleClientController;
 import ebookstore.controller.ConsoleOrderController;
+import ebookstore.exception.BookNotFoundException;
+import ebookstore.exception.ClientNotFoundException;
+import ebookstore.exception.OrderNotFoundException;
 import ebookstore.model.Book;
 import ebookstore.model.BookRequest;
 import ebookstore.model.Client;
@@ -11,7 +14,6 @@ import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Scanner;
 
 public class MenuController {
@@ -25,8 +27,7 @@ public class MenuController {
     public MenuController(ConsoleBookController bookController,
                           ConsoleClientController clientController,
                           ConsoleOrderController orderController,
-                          ConsoleBookRequestController requestController
-    ) {
+                          ConsoleBookRequestController requestController) {
         this.bookController = bookController;
         this.clientController = clientController;
         this.orderController = orderController;
@@ -53,7 +54,6 @@ public class MenuController {
                 default -> System.out.println("Неверный выбор. Попробуйте снова.");
             }
         }
-
     }
 
     public void processOrderMenu() {
@@ -112,50 +112,61 @@ public class MenuController {
         }
     }
 
-    /*
-    Методы книг.
-    Надо бы всё это дело разнести по отдельности...
-    * **/
+    public void processImportExportMenu() {
+        boolean run = true;
+        String choice;
+        while (run) {
+            PrintMenu.printImportExportMenu();
+            choice = scanner.nextLine();
+
+            switch (choice) {
+                case "1" -> processExportBooksToCsv();
+                case "2" -> processImportBookFromCsv();
+                case "3" -> processExportClientsToCsv();
+                case "4" -> processImportClientsFromCsv();
+                case "5" -> processExportOrdersToCsv();
+                case "6" -> processImportOrdersFromCsv();
+                case "7" -> processExportRequestsToCsv();
+                case "8" -> processImportRequestsFromCsv();
+                case "0" -> run = false;
+                default -> System.out.println("Неверный выбор. Попробуйте снова.");
+            }
+        }
+    }
+
     private void processAddBookMenu() {
-        String title;
-        String author;
-        String description;
-        LocalDate date;
-        double price;
         System.out.println("-- Добавление новой книги на склад --");
         try {
             System.out.println("Введите название книги:");
-            title = scanner.nextLine();
+            String title = scanner.nextLine();
             System.out.println("Введите автора книги:");
-            author = scanner.nextLine();
+            String author = scanner.nextLine();
             System.out.println("Введите описание книги:");
-            description = scanner.nextLine();
+            String description = scanner.nextLine();
             System.out.println("Введите дату издания книги ГГГГ-ММ-ДД:");
-            date = LocalDate.parse(scanner.nextLine());
+            LocalDate date = LocalDate.parse(scanner.nextLine());
             System.out.println("Введите стоимость книги:");
-            price = scanner.nextDouble();
+            double price = Double.parseDouble(scanner.nextLine());
 
             Book book = new Book(title, author, description, date, price);
-
             bookController.saveBook(book);
-
             System.out.println("Книга добавлена");
 
         } catch (Exception e) {
             System.out.println("Ошибка ввода данных");
         }
-
     }
 
     private void processChangeBookStatusToAbsent() {
         System.out.println("-- Списание книги со склада --");
         try {
             System.out.println("Введите id книги для списания:");
-            String bookId = scanner.nextLine();
-            bookController.changeBookStatusToAbsent(Integer.parseInt(bookId));
-
+            long bookId = Long.parseLong(scanner.nextLine());
+            bookController.changeBookStatusToAbsent(bookId);
+        } catch (BookNotFoundException e) {
+            System.out.println("Возникла ошибка: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("Вы ввели неверный, или несуществующий id книги");
+            System.out.println("Возникла непредвиденная ошибка: " + e.getMessage());
         }
     }
 
@@ -163,26 +174,25 @@ public class MenuController {
         System.out.println("-- Посмотреть описание книги --");
         try {
             System.out.println("Введите id книги для просмотра:");
-            String bookId = scanner.nextLine();
-            bookController.getBookDescription(Integer.parseInt(bookId));
-
+            long bookId = Long.parseLong(scanner.nextLine());
+            bookController.getBookDescription(bookId);
+        } catch (BookNotFoundException e) {
+            System.out.println("Возникла ошибка: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("Вы ввели неверный, или несуществующий id книги");
+            System.out.println("Возникла непредвиденная ошибка: " + e.getMessage());
         }
     }
 
-    // методы для заказов
     private void processCreateOrderMenu() {
         System.out.println("-- Создание заказа --");
         try {
             System.out.println("Введите ID клиента:");
             long clientId = Long.parseLong(scanner.nextLine());
+            System.out.println("Введите ID книги:");
+            long bookId = Long.parseLong(scanner.nextLine());
 
             Client client = new Client("", "", "", "", "");
             client.setId(clientId);
-
-            System.out.println("Введите ID книги:");
-            long bookId = Long.parseLong(scanner.nextLine());
 
             Book book = new Book("", "", "", LocalDate.now(), 0.0);
             book.setId(bookId);
@@ -191,8 +201,12 @@ public class MenuController {
             orderController.saveOrder(order);
             System.out.println("Заказ успешно создан!");
 
+        } catch (BookNotFoundException e) {
+            System.out.println("Возникла ошибка при поиске книги: " + e.getMessage());
+        } catch (ClientNotFoundException e) {
+            System.out.println("Возникла ошибка при поиске клиента: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("Ошибка при создании заказа: " + e.getMessage());
+            System.out.println("Возникла непредвиденная ошибка: " + e.getMessage());
         }
     }
 
@@ -203,8 +217,10 @@ public class MenuController {
             long orderId = Long.parseLong(scanner.nextLine());
             orderController.cancelOrder(orderId);
             System.out.println("Заказ успешно отменен!");
+        } catch (OrderNotFoundException e) {
+            System.out.println("Ошибка поиска заказа: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("Ошибка при отмене заказа: " + e.getMessage());
+            System.out.println("Возникла непредвиденная ошибка: " + e.getMessage());
         }
     }
 
@@ -230,8 +246,12 @@ public class MenuController {
             orderController.changeOrderStatus(orderId, status);
             System.out.println("Статус заказа успешно изменен!");
 
-        } catch (Exception e) {
+        } catch (OrderNotFoundException e) {
+            System.out.println("Ошибка поиска заказа: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
             System.out.println("Ошибка при изменении статуса: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Возникла непредвиденная ошибка: " + e.getMessage());
         }
     }
 
@@ -241,12 +261,13 @@ public class MenuController {
             System.out.println("Введите ID заказа:");
             long orderId = Long.parseLong(scanner.nextLine());
             orderController.getOrderDetails(orderId);
+        } catch (OrderNotFoundException e) {
+            System.out.println("Ошибка поиска заказа: " + e.getMessage());
         } catch (Exception e) {
             System.out.println("Ошибка: " + e.getMessage());
         }
     }
 
-    // методы для запроса
     private void processCreateRequestMenu() {
         System.out.println("-- Создание запроса на книгу --");
         try {
@@ -259,62 +280,145 @@ public class MenuController {
             requestController.createRequest(request);
             System.out.println("Запрос на книгу успешно создан!");
 
+        } catch (BookNotFoundException e) {
+            System.out.println("Возникла ошибка при поиске книги: " + e.getMessage());
+        } catch (ClientNotFoundException e) {
+            System.out.println("Возникла ошибка при поиске клиента: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("Ошибка при создании запроса: " + e.getMessage());
+            System.out.println("Возникла непредвиденная ошибка при создании запроса на книгу: " + e.getMessage());
         }
     }
 
-    // методы для статистики
     private void processCompletedOrdersByDateMenu() {
         System.out.println("-- Выполненные заказы за период (по дате) --");
         try {
-            LocalDateTime[] period = getPeriodFromUser();
+            LocalDate[] period = getPeriodFromUser();
             orderController.getCompletedOrdersByDate(period[0], period[1]);
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            System.out.println("Ошибка получения выполненных заказов по дате: " + e.getMessage());
         }
     }
 
     private void processCompletedOrdersByPriceMenu() {
         System.out.println("-- Выполненные заказы за период (по цене) --");
         try {
-            LocalDateTime[] period = getPeriodFromUser();
+            LocalDate[] period = getPeriodFromUser();
             orderController.getCompletedOrdersByPrice(period[0], period[1]);
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            System.out.println("Ошибка получения выполненных заказов по цене: " + e.getMessage());
         }
     }
 
     private void processEarnedAmountMenu() {
         System.out.println("-- Сумма заработанных средств за период --");
         try {
-            LocalDateTime[] period = getPeriodFromUser();
+            LocalDate[] period = getPeriodFromUser();
             orderController.getEarnedAmountInPeriod(period[0], period[1]);
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            System.out.println("Ошибка получения суммы заработанных средств: " + e.getMessage());
         }
     }
 
     private void processCompletedOrdersCountMenu() {
         System.out.println("-- Количество выполненных заказов за период --");
         try {
-            LocalDateTime[] period = getPeriodFromUser();
+            LocalDate[] period = getPeriodFromUser();
             orderController.getCompletedOrdersCountInPeriod(period[0], period[1]);
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            System.out.println("Ошибка получения количества выполненных заказов за период: " + e.getMessage());
         }
     }
 
-    private LocalDateTime[] getPeriodFromUser() {
+    private void processImportBookFromCsv() {
+        try {
+            System.out.println("Введите имя файла для импорта:");
+            String filename = scanner.nextLine();
+            bookController.importBooksFromCsv(filename);
+        } catch (Exception e) {
+            System.out.println("Ошибка импорта данных");
+        }
+    }
+
+    private void processExportBooksToCsv() {
+        try {
+            System.out.println("Введите имя файла для экспорта:");
+            String filename = scanner.nextLine();
+            bookController.exportBooksToCsv(filename);
+        } catch (Exception e) {
+            System.out.println("Ошибка экспорта данных");
+        }
+    }
+
+    private void processExportClientsToCsv() {
+        try {
+            System.out.println("Введите имя файла для экспорта:");
+            String filename = scanner.nextLine();
+            clientController.exportClientsToCsv(filename);
+        } catch (Exception e) {
+            System.out.println("Ошибка экспорта данных");
+        }
+    }
+
+    private void processImportClientsFromCsv() {
+        try {
+            System.out.println("Введите имя файла для импорта:");
+            String filename = scanner.nextLine();
+            clientController.importClientsFromCsv(filename);
+        } catch (Exception e) {
+            System.out.println("Ошибка импорта данных");
+        }
+    }
+
+    private void processExportOrdersToCsv() {
+        try {
+            System.out.println("Введите имя файла для экспорта:");
+            String filename = scanner.nextLine();
+            orderController.exportOrdersToCsv(filename);
+        } catch (Exception e) {
+            System.out.println("Ошибка экспорта данных");
+        }
+    }
+
+    private void processImportOrdersFromCsv() {
+        try {
+            System.out.println("Введите имя файла для импорта:");
+            String filename = scanner.nextLine();
+            orderController.importOrdersFromCsv(filename);
+        } catch (Exception e) {
+            System.out.println("Ошибка импорта данных");
+        }
+    }
+
+    private void processExportRequestsToCsv() {
+        try {
+            System.out.println("Введите имя файла для экспорта:");
+            String filename = scanner.nextLine();
+            requestController.exportRequestsToCsv(filename);
+        } catch (Exception e) {
+            System.out.println("Ошибка экспорта данных");
+        }
+    }
+
+    private void processImportRequestsFromCsv() {
+        try {
+            System.out.println("Введите имя файла для импорта:");
+            String filename = scanner.nextLine();
+            requestController.importRequestsFromCsv(filename);
+        } catch (Exception e) {
+            System.out.println("Ошибка импорта данных");
+        }
+    }
+
+    private LocalDate[] getPeriodFromUser() {
         System.out.println("Введите начальную дату (ГГГГ-ММ-ДД):");
         LocalDate startDate = LocalDate.parse(scanner.nextLine());
 
         System.out.println("Введите конечную дату (ГГГГ-ММ-ДД):");
         LocalDate endDate = LocalDate.parse(scanner.nextLine());
 
-        LocalDateTime start = startDate.atStartOfDay();
-        LocalDateTime end = endDate.atTime(23, 59, 59);
+        LocalDate start = LocalDate.from(startDate.atStartOfDay());
+        LocalDate end = LocalDate.from(endDate.atTime(23, 59, 59));
 
-        return new LocalDateTime[]{start, end};
+        return new LocalDate[]{start, end};
     }
 }

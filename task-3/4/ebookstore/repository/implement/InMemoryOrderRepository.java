@@ -18,7 +18,7 @@ public class InMemoryOrderRepository implements OrderRepository {
 
     private InMemoryOrderRepository() {
         orders = new HashMap<>();
-        orderId = 0;
+        orderId = 1;
     }
 
     public static InMemoryOrderRepository getInstance() {
@@ -46,6 +46,20 @@ public class InMemoryOrderRepository implements OrderRepository {
         orders.put(orderId, order);
 
         return order;
+    }
+
+    @Override
+    public Order updateOrder(Order order) {
+        Order existingOrder = orders.get(order.getOrderId());
+        if (existingOrder != null) {
+            existingOrder.setBook(order.getBook());
+            existingOrder.setClient(order.getClient());
+            existingOrder.setCreatedOn(order.getCreatedOn());
+            existingOrder.setCompletedOn(order.getCompletedOn());
+            existingOrder.setOrderStatus(order.getOrderStatus());
+            return existingOrder;
+        }
+        return null;
     }
 
     @Override

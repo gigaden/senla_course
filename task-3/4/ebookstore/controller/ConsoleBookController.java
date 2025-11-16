@@ -4,16 +4,20 @@ import ebookstore.dto.BookDescriptionDto;
 import ebookstore.model.Book;
 import ebookstore.model.enums.BookStatus;
 import ebookstore.service.BookService;
+import ebookstore.service.csv.reader.BookCsvReader;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 
 public class ConsoleBookController {
 
     private final BookService bookService;
+    private final BookCsvReader csvReader;
 
-    public ConsoleBookController(BookService bookService) {
+    public ConsoleBookController(BookService bookService, BookCsvReader csvReader) {
         this.bookService = bookService;
+        this.csvReader = csvReader;
     }
 
     public void saveBook(Book book) {
@@ -91,5 +95,26 @@ public class ConsoleBookController {
         System.out.printf("Получаем описание книги с id = %d%n", bookId);
         BookDescriptionDto bookDescription = bookService.getBookDescription(bookId);
         System.out.printf("Получили описание книги: %s\n", bookDescription);
+    }
+
+    public void importBooksFromCsv(String filePath) {
+        System.out.println("Импортируем книги из файла: " + filePath);
+        try {
+            List<List<String>> booksData = csvReader.readFromCsv(filePath);
+            System.out.println("Найдено записей в файле: " + booksData.size());
+            csvReader.saveBookFromCsv(booksData);
+        } catch (Exception e) {
+            System.out.println("Ошибка при импорте книг: " + e.getMessage());
+        }
+    }
+
+    public void exportBooksToCsv(String filePath) {
+        System.out.println("Экспортируем книги в CSV файл: " + filePath);
+        try {
+            bookService.exportBooksToCsv(filePath);
+            System.out.println("Экспорт книг успешно завершен!");
+        } catch (Exception e) {
+            System.out.println("Ошибка при экспорте книг: " + e.getMessage());
+        }
     }
 }

@@ -18,7 +18,7 @@ public class InMemoryBookRequestRepository implements BookRequestRepository {
 
     private InMemoryBookRequestRepository() {
         requests = new HashMap<>();
-        requestId = 0;
+        requestId = 1;
     }
 
     public static InMemoryBookRequestRepository getInstance() {
@@ -52,6 +52,19 @@ public class InMemoryBookRequestRepository implements BookRequestRepository {
     public void changeRequestStatus(long requestId, BookRequestStatus status) {
         BookRequest request = requests.get(requestId);
         request.setRequestStatus(status);
+    }
+
+    @Override
+    public BookRequest updateRequest(BookRequest request) {
+        BookRequest existingRequest = requests.get(request.getRequestId());
+        if (existingRequest != null) {
+            existingRequest.setBookId(request.getBookId());
+            existingRequest.setClientId(request.getClientId());
+            existingRequest.setRequestStatus(request.getRequestStatus());
+
+            return existingRequest;
+        }
+        return null;
     }
 
     @Override

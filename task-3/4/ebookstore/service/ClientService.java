@@ -16,5 +16,7 @@ public interface ClientService {
 
     void deleteClientById(long clientId);
 
-    void checkClientIsExist(long clientId);
+    boolean checkClientIsExist(long clientId);
+
+    public void exportClientsToCsv(String filePath);
 }

@@ -1,6 +1,8 @@
 package ebookstore.service.implement;
 
 import ebookstore.dto.BookRequestDto;
+import ebookstore.exception.RequestNotFoundException;
+import ebookstore.exception.message.RequestErrorMessages;
 import ebookstore.model.Book;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
@@ -9,6 +11,7 @@ import ebookstore.repository.BookRequestRepository;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.BookService;
 import ebookstore.service.ClientService;
+import ebookstore.service.csv.writer.BookRequestCsvExporter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,13 +25,16 @@ public class BookRequestServiceImpl implements BookRequestService {
     private final BookRequestRepository requestRepository;
     private final BookService bookService;
     private final ClientService clientService;
+    private final BookRequestCsvExporter requestCsvExporter;
 
     public BookRequestServiceImpl(BookRequestRepository requestRepository,
                                   BookService bookService,
-                                  ClientService clientService) {
+                                  ClientService clientService,
+                                  BookRequestCsvExporter requestCsvExporter) {
         this.requestRepository = requestRepository;
         this.bookService = bookService;
         this.clientService = clientService;
+        this.requestCsvExporter = requestCsvExporter;
     }
 
     @Override
@@ -48,11 +54,15 @@ public class BookRequestServiceImpl implements BookRequestService {
     }
 
     @Override
+    public BookRequest update(BookRequest request) {
+        BookRequest oldRequest = getRequestById(request.getRequestId());
+        return requestRepository.updateRequest(oldRequest);
+    }
+
+    @Override
     public BookRequest getRequestById(long requestId) {
-        return requestRepository.getRequestById(requestId).orElseThrow(() -> {
-            System.out.printf("Запроса с id = %s не существует\n", requestId);
-            return new RuntimeException();
-        });
+        return requestRepository.getRequestById(requestId)
+                .orElseThrow(() -> new RequestNotFoundException(RequestErrorMessages.FIND_ERROR));
     }
 
     @Override
@@ -83,6 +93,17 @@ public class BookRequestServiceImpl implements BookRequestService {
         return bookRequestDtos;
     }
 
+    @Override
+    public boolean checkRequestIsExist(long requestId) {
+        return requestRepository.checkRequestIsExist(requestId);
+    }
+
+    @Override
+    public void exportRequestsToCsv(String filePath) {
+        Collection<BookRequest> allRequests = requestRepository.getAllRequests();
+        requestCsvExporter.exportToCsv(allRequests, filePath);
+    }
+
     private List<BookRequestDto> makeRequestDto(List<BookRequest> bookRequests) {
         List<BookRequestDto> response = new ArrayList<>();
 
@@ -98,12 +119,5 @@ public class BookRequestServiceImpl implements BookRequestService {
         }
 
         return response;
-    }
-
-    public void checkRequestIsExist(long requestId) {
-        if (!requestRepository.checkRequestIsExist(requestId)) {
-            System.out.printf("Запроса с id = %d не существует", requestId);
-            throw new RuntimeException();
-        }
     }
 }

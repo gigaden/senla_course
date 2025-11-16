@@ -4,16 +4,21 @@ import ebookstore.dto.BookRequestDto;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.service.BookRequestService;
+import ebookstore.service.csv.reader.BookRequestCsvReader;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 
 public class ConsoleBookRequestController {
 
     private final BookRequestService requestService;
+    private final BookRequestCsvReader csvReader;
 
-    public ConsoleBookRequestController(BookRequestService requestService) {
+    public ConsoleBookRequestController(BookRequestService requestService,
+                                        BookRequestCsvReader csvReader) {
         this.requestService = requestService;
+        this.csvReader = csvReader;
     }
 
     public void createRequest(BookRequest request) {
@@ -47,5 +52,26 @@ public class ConsoleBookRequestController {
         Collection<BookRequestDto> bookRequestDtos = requestService
                 .getSortedRequest(Comparator.comparing(BookRequestDto::getBookTitle));
         System.out.printf("Получили все запросы по алфавиту: %s\n", bookRequestDtos);
+    }
+
+    public void importRequestsFromCsv(String filePath) {
+        System.out.println("Импортируем запросы из файла: " + filePath);
+        try {
+            List<List<String>> booksData = csvReader.readFromCsv(filePath);
+            System.out.println("Найдено записей в файле: " + booksData.size());
+            csvReader.saveBookRequestFromCsv(booksData);
+        } catch (Exception e) {
+            System.out.println("Ошибка при импорте запросов: " + e.getMessage());
+        }
+    }
+
+    public void exportRequestsToCsv(String filePath) {
+        System.out.println("Экспортируем запросы в CSV файл: " + filePath);
+        try {
+            requestService.exportRequestsToCsv(filePath);
+            System.out.println("Экспорт запросов успешно завершен!");
+        } catch (Exception e) {
+            System.out.println("Ошибка при экспорте запросов: " + e.getMessage());
+        }
     }
 }

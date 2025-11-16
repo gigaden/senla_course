@@ -1,6 +1,8 @@
 package ebookstore.service.implement;
 
 import ebookstore.dto.OrderDetailsDto;
+import ebookstore.exception.OrderNotFoundException;
+import ebookstore.exception.message.OrderErrorMessages;
 import ebookstore.model.Book;
 import ebookstore.model.BookRequest;
 import ebookstore.model.Client;
@@ -11,8 +13,9 @@ import ebookstore.repository.OrderRepository;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.ClientService;
 import ebookstore.service.OrderService;
+import ebookstore.service.csv.writer.OrderCsvExporter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -23,13 +26,16 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final ClientService clientService;
     private final BookRequestService requestService;
+    private final OrderCsvExporter orderCsvExporter;
 
     public OrderServiceImpl(ClientService clientService,
                             OrderRepository orderRepository,
-                            BookRequestService requestService) {
+                            BookRequestService requestService,
+                            OrderCsvExporter orderCsvExporter) {
         this.clientService = clientService;
         this.orderRepository = orderRepository;
         this.requestService = requestService;
+        this.orderCsvExporter = orderCsvExporter;
     }
 
     @Override
@@ -43,10 +49,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order getOrderById(long orderId) {
-        return orderRepository.getOrderById(orderId).orElseThrow(() -> {
-            System.out.printf("Заказа с id = %s не существует\n", orderId);
-            return new RuntimeException();
-        });
+        return orderRepository.getOrderById(orderId).orElseThrow(() -> new OrderNotFoundException(OrderErrorMessages.FIND_ERROR));
     }
 
     @Override
@@ -66,13 +69,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void changeStatus(long orderId, OrderStatus orderStatus) {
-        checkOrderIsExist(orderId);
         Order order = getOrderById(orderId);
 
         // чекаем есть ли запросы на эту книгу, если выбран статус "Завершить заказ"
         if (orderStatus.equals(OrderStatus.COMPLETED)) {
             checkRequestIfOrderStatusCompleted(order);
-            order.setCompletedOn(LocalDateTime.now());
+            order.setCompletedOn(LocalDate.now());
         }
 
         order.setOrderStatus(orderStatus);
@@ -80,18 +82,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void cancelOrder(long orderId) {
-        changeStatus(orderId, OrderStatus.CANCELED);
-    }
-
-    private void checkOrderIsExist(long orderId) {
-        if (!orderRepository.checkOrderIsExist(orderId)) {
-            System.out.printf("Заказ с id = %d не существует", orderId);
-            throw new RuntimeException();
-        }
+        Order order = getOrderById(orderId);
+        changeStatus(order.getOrderId(), OrderStatus.CANCELED);
     }
 
     @Override
-    public Collection<Order> getCompletedOrdersInPeriod(LocalDateTime start, LocalDateTime end, Comparator<Order> comparator) {
+    public Collection<Order> getCompletedOrdersInPeriod(LocalDate start, LocalDate end, Comparator<Order> comparator) {
 
         Collection<Order> allOrders = orderRepository.getAllOrders().stream()
                 .filter(o -> o.getOrderStatus().equals(OrderStatus.COMPLETED))
@@ -105,7 +101,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public double getEarnedAmountInPeriod(LocalDateTime start, LocalDateTime end) {
+    public double getEarnedAmountInPeriod(LocalDate start, LocalDate end) {
 
         double totalAmount = orderRepository.getAllOrders().stream()
                 .filter(order -> order.getOrderStatus().equals(OrderStatus.COMPLETED))
@@ -119,7 +115,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public int getCompletedOrdersCountInPeriod(LocalDateTime start, LocalDateTime end) {
+    public int getCompletedOrdersCountInPeriod(LocalDate start, LocalDate end) {
         int count = (int) orderRepository.getAllOrders().stream()
                 .filter(order -> order.getOrderStatus().equals(OrderStatus.COMPLETED))
                 .filter(order -> order.getCompletedOn() != null)
@@ -132,13 +128,30 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDetailsDto getOrderDetails(long orderId) {
-        checkOrderIsExist(orderId);
-
         Order order = getOrderById(orderId);
         Client client = clientService.getClientById(order.getClient().getId());
         Book book = order.getBook();
 
         return new OrderDetailsDto(order, client, book);
+    }
+
+    @Override
+    public boolean checkOrderIsExist(long orderId) {
+        return orderRepository.checkOrderIsExist(orderId);
+    }
+
+    @Override
+    public Order updateOrder(Order order) {
+        Order oldOrder = getOrderById(order.getOrderId());
+        Order newOrder = orderRepository.updateOrder(oldOrder);
+
+        return newOrder;
+    }
+
+    @Override
+    public void exportOrdersToCsv(String filePath) {
+        Collection<Order> allOrders = orderRepository.getAllOrders();
+        orderCsvExporter.exportToCsv(allOrders, filePath);
     }
 
     private void createRequestIfBookIsAbsent(Order newOrder) {

@@ -18,4 +18,10 @@ public interface BookRequestService {
     boolean requestIsOpenForBookWithId(long bookId);
 
     public Collection<BookRequestDto> getSortedRequest(Comparator<BookRequestDto> comparator);
+
+    boolean checkRequestIsExist(long requestId);
+
+    BookRequest update(BookRequest request);
+
+    void exportRequestsToCsv(String filePath);
 }

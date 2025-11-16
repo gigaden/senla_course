@@ -4,7 +4,7 @@ import ebookstore.dto.OrderDetailsDto;
 import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
 
@@ -22,11 +22,17 @@ public interface OrderService {
 
     void cancelOrder(long orderId);
 
-    Collection<Order> getCompletedOrdersInPeriod(LocalDateTime start, LocalDateTime end, Comparator<Order> comparator);
+    Collection<Order> getCompletedOrdersInPeriod(LocalDate start, LocalDate end, Comparator<Order> comparator);
 
-    double getEarnedAmountInPeriod(LocalDateTime start, LocalDateTime end);
+    double getEarnedAmountInPeriod(LocalDate start, LocalDate end);
 
-    int getCompletedOrdersCountInPeriod(LocalDateTime start, LocalDateTime end);
+    int getCompletedOrdersCountInPeriod(LocalDate start, LocalDate end);
 
     OrderDetailsDto getOrderDetails(long orderId);
+
+    boolean checkOrderIsExist(long orderId);
+
+    Order updateOrder(Order order);
+
+    void exportOrdersToCsv(String filePath);
 }

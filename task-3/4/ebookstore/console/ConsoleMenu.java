@@ -23,6 +23,7 @@ public class ConsoleMenu {
                 case "2" -> menuController.processOrderMenu();
                 case "3" -> menuController.processRequestMenu();
                 case "4" -> menuController.processStatisticMenu();
+                case "5" -> menuController.processImportExportMenu();
                 case "0" -> {
                     System.out.println("Выход из программы...");
                     run = false;

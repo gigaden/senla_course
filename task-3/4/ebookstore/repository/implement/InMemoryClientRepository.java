@@ -16,7 +16,7 @@ public class InMemoryClientRepository implements ClientRepository {
 
     private InMemoryClientRepository() {
         clients = new HashMap<>();
-        clientId = 0;
+        clientId = 1;
     }
 
     public static InMemoryClientRepository getInstance() {
@@ -66,6 +66,11 @@ public class InMemoryClientRepository implements ClientRepository {
         oldClient.setEmail(client.getEmail());
 
         return oldClient;
+    }
+
+    @Override
+    public boolean checkClientIsExist(long clientId) {
+        return clients.containsKey(clientId);
     }
 
     private long generateId() {

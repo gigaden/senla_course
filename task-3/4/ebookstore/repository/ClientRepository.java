@@ -16,4 +16,6 @@ public interface ClientRepository {
     Client updateClient(Client client);
 
     void deleteClient(long clientId);
+
+    boolean checkClientIsExist(long bookId);
 }

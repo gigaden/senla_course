@@ -1,6 +1,8 @@
 package ebookstore.service.implement;
 
 import ebookstore.dto.BookDescriptionDto;
+import ebookstore.exception.BookNotFoundException;
+import ebookstore.exception.message.BookErrorMessages;
 import ebookstore.model.Book;
 import ebookstore.model.Order;
 import ebookstore.model.enums.BookStatus;
@@ -8,6 +10,7 @@ import ebookstore.model.enums.OrderStatus;
 import ebookstore.repository.BookRepository;
 import ebookstore.repository.OrderRepository;
 import ebookstore.service.BookService;
+import ebookstore.service.csv.writer.BookCsvExporter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,17 +22,22 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
     private final OrderRepository orderRepository;
+    private final BookCsvExporter bookCsvExporter;
 
-    public BookServiceImpl(BookRepository bookRepository, OrderRepository orderRepository) {
+    public BookServiceImpl(BookRepository bookRepository,
+                           OrderRepository orderRepository,
+                           BookCsvExporter bookCsvExporter) {
         this.bookRepository = bookRepository;
         this.orderRepository = orderRepository;
+        this.bookCsvExporter = bookCsvExporter;
     }
 
     @Override
     public Book saveBook(Book book) {
-        book.setStatus(BookStatus.AVAILABLE);
+        if (book.getId() == 0) {
+            book.setStatus(BookStatus.AVAILABLE);
+        }
         Book newBook = bookRepository.saveBook(book);
-
         return newBook;
     }
 
@@ -49,24 +57,22 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getBookById(long bookId) {
-        return bookRepository.getBook(bookId).orElseThrow(() -> {
-            System.out.printf("Книги с id = %s не существует\n", bookId);
-            return new RuntimeException();
-        });
+        return bookRepository.getBook(bookId)
+                .orElseThrow(() -> new BookNotFoundException(BookErrorMessages.FIND_ERROR));
     }
 
     @Override
     public Book updateBook(Book book) {
-        checkBookIsExist(book.getId());
-        Book newBook = bookRepository.updateBook(book);
+        Book oldBook = getBookById(book.getId());
+        Book newBook = bookRepository.updateBook(oldBook);
 
         return newBook;
     }
 
     @Override
     public void deleteBookById(long bookId) {
-        checkBookIsExist(bookId);
-        bookRepository.deleteBook(bookId);
+        Book book = getBookById(bookId);
+        bookRepository.deleteBook(book.getId());
     }
 
     @Override
@@ -90,7 +96,7 @@ public class BookServiceImpl implements BookService {
                 if (order.getBook().getId() == book.getId()
                     && order.getOrderStatus().equals(OrderStatus.COMPLETED)
                     && order.getCompletedOn() != null
-                    && order.getCompletedOn().isAfter(sixMonthsAgo)) {
+                    && order.getCompletedOn().isAfter(sixMonthsAgo.toLocalDate())) {
                     hasRecentOrder = true;
                     break;
                 }
@@ -108,15 +114,24 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDescriptionDto getBookDescription(long bookId) {
-        checkBookIsExist(bookId);
         Book book = getBookById(bookId);
         return BookDescriptionDto.fromBook(book);
     }
 
-    private void checkBookIsExist(long bookId) {
-        if (!bookRepository.checkBookIsExist(bookId)) {
-            System.out.printf("Книги с id = %d не существует", bookId);
-            throw new RuntimeException();
-        }
+    @Override
+    public boolean checkBookIsExist(long bookId) {
+        return bookRepository.checkBookIsExist(bookId);
+    }
+
+    @Override
+    public void exportBooksToCsv(String filePath) {
+        Collection<Book> allBooks = bookRepository.getAllBooks();
+        bookCsvExporter.exportToCsv(allBooks, filePath);
+    }
+
+    @Override
+    public void importBooksFromCsv(String filePath) {
+        Collection<Book> allBooks = bookRepository.getAllBooks();
+        bookCsvExporter.exportToCsv(allBooks, filePath);
     }
 }
