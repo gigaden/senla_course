@@ -4,17 +4,22 @@ import ebookstore.dto.OrderDetailsDto;
 import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.service.OrderService;
+import ebookstore.service.csv.reader.OrderCsvReader;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 
 public class ConsoleOrderController {
 
     private final OrderService orderService;
+    private final OrderCsvReader csvReader;
 
-    public ConsoleOrderController(OrderService orderService) {
+    public ConsoleOrderController(OrderService orderService,
+                                  OrderCsvReader csvReader) {
         this.orderService = orderService;
+        this.csvReader = csvReader;
     }
 
     public void saveOrder(Order order) {
@@ -74,7 +79,7 @@ public class ConsoleOrderController {
         System.out.printf("Изменили статус заказа с id = %d на отменённый\n", orderId);
     }
 
-    public void getCompletedOrdersByDate(LocalDateTime start, LocalDateTime end) {
+    public void getCompletedOrdersByDate(LocalDate start, LocalDate end) {
         System.out.printf("Получаем выполненные заказы за период с %s по %s, отсортированные по дате%n", start, end);
         Collection<Order> orders = orderService.getCompletedOrdersInPeriod(
                 start,
@@ -87,7 +92,7 @@ public class ConsoleOrderController {
         System.out.printf("Получили выполненные заказы, отсортированные по дате: %s\n", orders);
     }
 
-    public void getCompletedOrdersByPrice(LocalDateTime start, LocalDateTime end) {
+    public void getCompletedOrdersByPrice(LocalDate start, LocalDate end) {
         System.out.printf("Получаем выполненные заказы за период с %s по %s, отсортированные по цене\n", start, end);
         Collection<Order> orders = orderService.getCompletedOrdersInPeriod(
                 start,
@@ -97,13 +102,13 @@ public class ConsoleOrderController {
         System.out.printf("Получили выполненные заказы, отсортированные по цене: %s\n", orders);
     }
 
-    public void getEarnedAmountInPeriod(LocalDateTime start, LocalDateTime end) {
+    public void getEarnedAmountInPeriod(LocalDate start, LocalDate end) {
         System.out.printf("Получаем сумму заработанных средств за период с %s по %s\n", start, end);
         double earnedAmount = orderService.getEarnedAmountInPeriod(start, end);
         System.out.printf("Получили сумму заработанных средств за период: %.2f\n", earnedAmount);
     }
 
-    public void getCompletedOrdersCountInPeriod(LocalDateTime start, LocalDateTime end) {
+    public void getCompletedOrdersCountInPeriod(LocalDate start, LocalDate end) {
         System.out.printf("Получаем количество выполненных заказов за период с %s по %s\n", start, end);
         int ordersCount = orderService.getCompletedOrdersCountInPeriod(start, end);
         System.out.printf("Получили количество выполненных заказов за период: %d\n", ordersCount);
@@ -113,5 +118,26 @@ public class ConsoleOrderController {
         System.out.printf("Получаем детали заказа с id = %d\n", orderId);
         OrderDetailsDto orderDetails = orderService.getOrderDetails(orderId);
         System.out.printf("Получили детали заказа: %s\n", orderDetails);
+    }
+
+    public void importOrdersFromCsv(String filePath) {
+        System.out.println("Импортируем заказы из файла: " + filePath);
+        try {
+            List<List<String>> ordersData = csvReader.readFromCsv(filePath);
+            System.out.println("Найдено записей в файле: " + ordersData.size());
+            csvReader.saveOrderFromCsv(ordersData);
+        } catch (Exception e) {
+            System.out.println("Ошибка при импорте заказов: " + e.getMessage());
+        }
+    }
+
+    public void exportOrdersToCsv(String filePath) {
+        System.out.println("Экспортируем заказы в CSV файл: " + filePath);
+        try {
+            orderService.exportOrdersToCsv(filePath);
+            System.out.println("Экспорт заказов успешно завершен!");
+        } catch (Exception e) {
+            System.out.println("Ошибка при экспорте заказов: " + e.getMessage());
+        }
     }
 }

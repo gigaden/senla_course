@@ -21,6 +21,13 @@ import ebookstore.service.BookRequestService;
 import ebookstore.service.BookService;
 import ebookstore.service.ClientService;
 import ebookstore.service.OrderService;
+import ebookstore.service.csv.reader.BookCsvReader;
+import ebookstore.service.csv.reader.BookRequestCsvReader;
+import ebookstore.service.csv.reader.OrderCsvReader;
+import ebookstore.service.csv.writer.BookCsvExporter;
+import ebookstore.service.csv.writer.BookRequestCsvExporter;
+import ebookstore.service.csv.writer.ClientCsvExporter;
+import ebookstore.service.csv.writer.OrderCsvExporter;
 import ebookstore.service.implement.BookRequestServiceImpl;
 import ebookstore.service.implement.BookServiceImpl;
 import ebookstore.service.implement.ClientServiceImpl;
@@ -51,16 +58,21 @@ public final class NotTest {
         clientRepository = InMemoryClientRepository.getInstance();
         orderRepository = InMemoryOrderRepository.getInstance();
         requestRepository = InMemoryBookRequestRepository.getInstance();
+        ClientCsvExporter clientCsvExporter = new ClientCsvExporter();
+        BookCsvExporter bookCsvExporter = new BookCsvExporter();
+        BookRequestCsvExporter bookRequestCsvExporter = new BookRequestCsvExporter();
+        OrderCsvExporter orderCsvExporter = new OrderCsvExporter();
 
-        clientService = new ClientServiceImpl(clientRepository);
-        bookService = new BookServiceImpl(bookRepository, orderRepository);
-        requestService = new BookRequestServiceImpl(requestRepository, bookService, clientService);
-        orderService = new OrderServiceImpl(clientService, orderRepository, requestService);
+        clientService = new ClientServiceImpl(clientRepository, clientCsvExporter);
+        bookService = new BookServiceImpl(bookRepository, orderRepository, bookCsvExporter);
+        requestService = new BookRequestServiceImpl(requestRepository, bookService, clientService, bookRequestCsvExporter);
+        orderService = new OrderServiceImpl(clientService, orderRepository, requestService, orderCsvExporter);
 
-        bookController = new ConsoleBookController(bookService);
+        bookController = new ConsoleBookController(bookService, new BookCsvReader(bookService));
         clientController = new ConsoleClientController(clientService);
-        orderController = new ConsoleOrderController(orderService);
-        requestController = new ConsoleBookRequestController(requestService);
+        orderController = new ConsoleOrderController(orderService, new OrderCsvReader(orderService, bookService, clientService));
+        requestController = new ConsoleBookRequestController(requestService, new BookRequestCsvReader(new BookRequestServiceImpl(requestRepository,
+                bookService, clientService, new BookRequestCsvExporter())));
 
     }
 

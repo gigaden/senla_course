@@ -17,4 +17,6 @@ public interface BookRequestRepository {
     void changeRequestStatus(long requestId, BookRequestStatus status);
 
     boolean checkRequestIsExist(long bookId);
+
+    BookRequest updateRequest(BookRequest request);
 }

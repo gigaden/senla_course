@@ -17,4 +17,6 @@ public interface OrderRepository {
     void changeOrderStatus(long orderId, OrderStatus orderStatus);
 
     boolean checkOrderIsExist(long orderId);
+
+    Order updateOrder(Order order);
 }

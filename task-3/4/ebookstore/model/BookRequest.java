@@ -2,7 +2,7 @@ package ebookstore.model;
 
 import ebookstore.model.enums.BookRequestStatus;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public class BookRequest {
 
@@ -14,12 +14,12 @@ public class BookRequest {
 
     private BookRequestStatus requestStatus;
 
-    private final LocalDateTime createdOn;
+    private LocalDate createdOn;
 
     public BookRequest(long bookId, long clientId) {
         this.bookId = bookId;
         this.clientId = clientId;
-        createdOn = LocalDateTime.now();
+        createdOn = LocalDate.now();
     }
 
     public long getRequestId() {
@@ -30,8 +30,12 @@ public class BookRequest {
         this.requestId = requestId;
     }
 
-    public LocalDateTime getCreatedOn() {
+    public LocalDate getCreatedOn() {
         return createdOn;
+    }
+
+    public void setCreatedOn(LocalDate createdOn) {
+        this.createdOn = createdOn;
     }
 
     public long getBookId() {

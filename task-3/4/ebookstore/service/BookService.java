@@ -25,4 +25,10 @@ public interface BookService {
     public BookDescriptionDto getBookDescription(long bookId);
 
     Collection<Book> getStaleBooks(Comparator<Book> comparator);
+
+    boolean checkBookIsExist(long bookId);
+
+    void exportBooksToCsv(String filePath);
+
+    void importBooksFromCsv(String filePath);
 }

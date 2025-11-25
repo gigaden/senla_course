@@ -2,21 +2,21 @@ package ebookstore.model;
 
 import ebookstore.model.enums.OrderStatus;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public class Order {
 
     private long id;
     private Book book;
     private Client client;
-    private final LocalDateTime createdOn;
-    private LocalDateTime completedOn;
+    private LocalDate createdOn;
+    private LocalDate completedOn;
     private OrderStatus orderStatus;
 
     public Order(Book book, Client client) {
         this.book = book;
         this.client = client;
-        createdOn = LocalDateTime.now();
+        createdOn = LocalDate.now();
         orderStatus = OrderStatus.NEW;
     }
 
@@ -36,8 +36,12 @@ public class Order {
         this.orderStatus = orderStatus;
     }
 
-    public LocalDateTime getCreatedOn() {
+    public LocalDate getCreatedOn() {
         return createdOn;
+    }
+
+    public void setCreatedOn(LocalDate createdOn) {
+        this.createdOn = createdOn;
     }
 
     public Book getBook() {
@@ -56,11 +60,11 @@ public class Order {
         this.client = client;
     }
 
-    public LocalDateTime getCompletedOn() {
+    public LocalDate getCompletedOn() {
         return completedOn;
     }
 
-    public void setCompletedOn(LocalDateTime completedOn) {
+    public void setCompletedOn(LocalDate completedOn) {
         this.completedOn = completedOn;
     }
 

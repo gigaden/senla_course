@@ -17,14 +17,13 @@ public class InMemoryBookRepository implements BookRepository {
 
     private InMemoryBookRepository() {
         books = new HashMap<>();
-        bookId = 0;
+        bookId = 1;
     }
 
     public static InMemoryBookRepository getInstance() {
         if (instance == null) {
             instance = new InMemoryBookRepository();
         }
-
         return instance;
     }
 
@@ -34,26 +33,32 @@ public class InMemoryBookRepository implements BookRepository {
 
     @Override
     public Book saveBook(Book book) {
-        long bookId = generateId();
-        book.setId(bookId);
-        books.put(bookId, book);
-
+        if (book.getId() == 0) {
+            long newId = generateId();
+            book.setId(newId);
+        }
+        books.put(book.getId(), book);
         return book;
     }
 
     @Override
     public Optional<Book> getBook(long bookId) {
-
         return Optional.ofNullable(books.get(bookId));
     }
 
     @Override
     public Book updateBook(Book book) {
-        Book oldBook = books.get(book.getId());
-
-        Book newBook = setNewBooksField(oldBook, book);
-
-        return newBook;
+        Book existingBook = books.get(book.getId());
+        if (existingBook != null) {
+            existingBook.setTitle(book.getTitle());
+            existingBook.setAuthor(book.getAuthor());
+            existingBook.setDescription(book.getDescription());
+            existingBook.setDateOfPublication(book.getDateOfPublication());
+            existingBook.setPrice(book.getPrice());
+            existingBook.setStatus(book.getStatus());
+            return existingBook;
+        }
+        return null;
     }
 
     @Override
@@ -67,17 +72,6 @@ public class InMemoryBookRepository implements BookRepository {
     }
 
     private long generateId() {
-        long newId = bookId;
-        bookId++;
-
-        return newId;
-    }
-
-    private Book setNewBooksField(Book oldBook, Book book) {
-        oldBook.setAuthor(book.getAuthor());
-        oldBook.setTitle(book.getTitle());
-        oldBook.setDescription(book.getDescription());
-
-        return oldBook;
+        return bookId++;
     }
 }

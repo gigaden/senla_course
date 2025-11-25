@@ -1,0 +1,4 @@
+id,title,author,description,dateOfPublication,price,status
+1,book1,author1,description1,2022-01-10,350.0,AVAILABLE
+2,book2,author2,description2,2022-01-11,250.0,AVAILABLE
+3,book3,author3,description3,2022-01-12,450.0,AVAILABLE
