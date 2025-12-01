@@ -43,7 +43,6 @@ public class OrderServiceImpl implements OrderService {
         clientService.checkClientIsExist(order.getClient().getId());
         Order newOrder = orderRepository.createOrder(order);
         createRequestIfBookIsAbsent(newOrder);
-
         return newOrder;
     }
 
@@ -55,7 +54,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Collection<Order> getAllOrders() {
         List<Order> orders = new ArrayList<>(orderRepository.getAllOrders());
-
         return List.copyOf(orders);
     }
 
@@ -63,7 +61,6 @@ public class OrderServiceImpl implements OrderService {
     public Collection<Order> getAllOrders(Comparator<Order> comparator) {
         List<Order> orders = new ArrayList<>(orderRepository.getAllOrders());
         orders.sort(comparator);
-
         return List.copyOf(orders);
     }
 
@@ -71,7 +68,6 @@ public class OrderServiceImpl implements OrderService {
     public void changeStatus(long orderId, OrderStatus orderStatus) {
         Order order = getOrderById(orderId);
 
-        // чекаем есть ли запросы на эту книгу, если выбран статус "Завершить заказ"
         if (orderStatus.equals(OrderStatus.COMPLETED)) {
             checkRequestIfOrderStatusCompleted(order);
             order.setCompletedOn(LocalDate.now());
@@ -88,42 +84,34 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Collection<Order> getCompletedOrdersInPeriod(LocalDate start, LocalDate end, Comparator<Order> comparator) {
-
-        Collection<Order> allOrders = orderRepository.getAllOrders().stream()
+        return orderRepository.getAllOrders().stream()
                 .filter(o -> o.getOrderStatus().equals(OrderStatus.COMPLETED))
                 .filter(o -> o.getCompletedOn() != null)
                 .filter(o -> !o.getCompletedOn().isBefore(start))
                 .filter(o -> !o.getCompletedOn().isAfter(end))
                 .sorted(comparator)
                 .toList();
-
-        return allOrders;
     }
 
     @Override
     public double getEarnedAmountInPeriod(LocalDate start, LocalDate end) {
-
-        double totalAmount = orderRepository.getAllOrders().stream()
+        return orderRepository.getAllOrders().stream()
                 .filter(order -> order.getOrderStatus().equals(OrderStatus.COMPLETED))
                 .filter(order -> order.getCompletedOn() != null)
                 .filter(order -> !order.getCompletedOn().isBefore(start))
                 .filter(order -> !order.getCompletedOn().isAfter(end))
                 .mapToDouble(order -> order.getBook().getPrice())
                 .sum();
-
-        return totalAmount;
     }
 
     @Override
     public int getCompletedOrdersCountInPeriod(LocalDate start, LocalDate end) {
-        int count = (int) orderRepository.getAllOrders().stream()
+        return (int) orderRepository.getAllOrders().stream()
                 .filter(order -> order.getOrderStatus().equals(OrderStatus.COMPLETED))
                 .filter(order -> order.getCompletedOn() != null)
                 .filter(order -> !order.getCompletedOn().isBefore(start))
                 .filter(order -> !order.getCompletedOn().isAfter(end))
                 .count();
-
-        return count;
     }
 
     @Override
@@ -131,7 +119,6 @@ public class OrderServiceImpl implements OrderService {
         Order order = getOrderById(orderId);
         Client client = clientService.getClientById(order.getClient().getId());
         Book book = order.getBook();
-
         return new OrderDetailsDto(order, client, book);
     }
 
@@ -143,9 +130,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order updateOrder(Order order) {
         Order oldOrder = getOrderById(order.getOrderId());
-        Order newOrder = orderRepository.updateOrder(oldOrder);
-
-        return newOrder;
+        return orderRepository.updateOrder(oldOrder);
     }
 
     @Override
