@@ -13,5 +13,3 @@ mkdir -p build
 javac -cp "../config-module/config-module.jar" -d build @sources.txt
 jar cvf di-module.jar -C build .
 echo "di-module скомпилирован успешно!"
-rm -rf build
-rm sources.txt

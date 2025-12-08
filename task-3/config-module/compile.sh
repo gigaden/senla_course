@@ -6,5 +6,3 @@ mkdir -p build
 javac -d build @sources.txt
 jar cvf config-module.jar -C build .
 echo "config-module скомпилин"
-rm -rf build
-rm sources.txt
