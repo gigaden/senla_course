@@ -4,17 +4,21 @@ import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.repository.OrderRepository;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class InMemoryOrderRepository implements OrderRepository {
+public class InMemoryOrderRepository implements OrderRepository, Serializable {
 
+    @Serial
+    private static final long serialVersionUID = 1L;
     private static InMemoryOrderRepository instance;
 
-    private static Map<Long, Order> orders;
-    private static long orderId;
+    private Map<Long, Order> orders;
+    private long orderId;
 
     private InMemoryOrderRepository() {
         orders = new HashMap<>();
@@ -74,9 +78,6 @@ public class InMemoryOrderRepository implements OrderRepository {
     }
 
     private long generateId() {
-        long newId = orderId;
-        orderId++;
-
-        return newId;
+        return orderId++;
     }
 }

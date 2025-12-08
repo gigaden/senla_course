@@ -1,6 +1,11 @@
 package ebookstore.model;
 
-public class Client {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class Client implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private long id;
     private String name;

@@ -2,9 +2,13 @@ package ebookstore.model;
 
 import ebookstore.model.enums.OrderStatus;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class Order {
+public class Order implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private long id;
     private Book book;

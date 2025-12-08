@@ -9,8 +9,10 @@ import ebookstore.model.enums.BookStatus;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.repository.BookRepository;
 import ebookstore.repository.OrderRepository;
+import ebookstore.service.BookRequestService;
 import ebookstore.service.BookService;
 import ebookstore.service.csv.writer.BookCsvExporter;
+import ebookstore.util.PropertiesUtil;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,17 +22,24 @@ import java.util.List;
 
 public class BookServiceImpl implements BookService {
 
+    private static final String MONTH_QUANTITY = "month_quantity";
+    private static final String MARK_REQUEST_COMPLETED = "mark_request_completed";
+
     private final BookRepository bookRepository;
     private final OrderRepository orderRepository;
     private final BookCsvExporter bookCsvExporter;
+    private final BookRequestService requestService;
 
     public BookServiceImpl(BookRepository bookRepository,
                            OrderRepository orderRepository,
+                           BookRequestService requestService,
                            BookCsvExporter bookCsvExporter) {
         this.bookRepository = bookRepository;
         this.orderRepository = orderRepository;
+        this.requestService = requestService;
         this.bookCsvExporter = bookCsvExporter;
     }
+
 
     @Override
     public Book saveBook(Book book) {
@@ -38,12 +47,18 @@ public class BookServiceImpl implements BookService {
             book.setStatus(BookStatus.AVAILABLE);
         }
         Book newBook = bookRepository.saveBook(book);
+
+        if (requestService.requestIsOpenForBookWithId(book.getId()) &&
+            Boolean.parseBoolean(PropertiesUtil.get(MARK_REQUEST_COMPLETED))) {
+
+            requestService.closeRequestByBookId(book.getId());
+        }
+
         return newBook;
     }
 
     @Override
     public Collection<Book> getAllBooks() {
-
         return List.copyOf(bookRepository.getAllBooks());
     }
 
@@ -51,7 +66,6 @@ public class BookServiceImpl implements BookService {
     public Collection<Book> getAllBooks(Comparator<Book> comparator) {
         List<Book> books = new ArrayList<>(bookRepository.getAllBooks());
         books.sort(comparator);
-
         return List.copyOf(books);
     }
 
@@ -64,9 +78,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public Book updateBook(Book book) {
         Book oldBook = getBookById(book.getId());
-        Book newBook = bookRepository.updateBook(oldBook);
-
-        return newBook;
+        return bookRepository.updateBook(oldBook);
     }
 
     @Override
@@ -79,14 +91,13 @@ public class BookServiceImpl implements BookService {
     public void makeBookAbsent(long bookId) {
         Book book = getBookById(bookId);
         book.setStatus(BookStatus.ABSENT);
-
     }
 
     @Override
     public Collection<Book> getStaleBooks(Comparator<Book> comparator) {
         List<Book> staleBooks = new ArrayList<>();
         Collection<Book> allBooks = bookRepository.getAllBooks();
-        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
+        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(Long.parseLong(PropertiesUtil.get(MONTH_QUANTITY)));
 
         for (Book book : allBooks) {
             boolean hasRecentOrder = false;
@@ -108,7 +119,6 @@ public class BookServiceImpl implements BookService {
         }
 
         staleBooks.sort(comparator);
-
         return List.copyOf(staleBooks);
     }
 

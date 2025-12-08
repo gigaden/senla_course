@@ -3,16 +3,19 @@ package ebookstore.repository.implement;
 import ebookstore.model.Client;
 import ebookstore.repository.ClientRepository;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class InMemoryClientRepository implements ClientRepository {
-
+public class InMemoryClientRepository implements ClientRepository, Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private static InMemoryClientRepository instance;
 
-    private static Map<Long, Client> clients;
-    private static long clientId;
+    private Map<Long, Client> clients;
+    private long clientId;
 
     private InMemoryClientRepository() {
         clients = new HashMap<>();
@@ -23,49 +26,43 @@ public class InMemoryClientRepository implements ClientRepository {
         if (instance == null) {
             instance = new InMemoryClientRepository();
         }
-
         return instance;
     }
 
+    @Override
     public Map<Long, Client> getAllClients() {
         return clients;
     }
 
     @Override
     public Client saveClient(Client client) {
-        long clientId = generateId();
-        client.setId(clientId);
-        clients.put(clientId, client);
-
+        long newId = generateId();
+        client.setId(newId);
+        clients.put(newId, client);
         return client;
     }
 
     @Override
     public Optional<Client> getClient(long clientId) {
-
         return Optional.ofNullable(clients.get(clientId));
     }
 
     @Override
     public Client updateClient(Client client) {
         Client oldClient = clients.get(client.getId());
-
-        Client newClient = setNewClientsField(oldClient, client);
-
-        return newClient;
+        if (oldClient != null) {
+            oldClient.setName(client.getName());
+            oldClient.setSurname(client.getSurname());
+            oldClient.setEmail(client.getEmail());
+            oldClient.setLogin(client.getLogin());
+            oldClient.setPassword(client.getPassword());
+        }
+        return oldClient;
     }
 
     @Override
     public void deleteClient(long clientId) {
         clients.remove(clientId);
-    }
-
-    private Client setNewClientsField(Client oldClient, Client client) {
-        oldClient.setName(client.getName());
-        oldClient.setSurname(client.getSurname());
-        oldClient.setEmail(client.getEmail());
-
-        return oldClient;
     }
 
     @Override
@@ -74,9 +71,6 @@ public class InMemoryClientRepository implements ClientRepository {
     }
 
     private long generateId() {
-        long newId = clientId;
-        clientId++;
-
-        return newId;
+        return clientId++;
     }
 }

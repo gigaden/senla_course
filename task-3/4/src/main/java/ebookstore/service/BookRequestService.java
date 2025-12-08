@@ -23,5 +23,7 @@ public interface BookRequestService {
 
     BookRequest update(BookRequest request);
 
+    void closeRequestByBookId(long bookId);
+
     void exportRequestsToCsv(String filePath);
 }

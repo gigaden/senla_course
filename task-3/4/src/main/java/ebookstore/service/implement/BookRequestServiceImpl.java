@@ -48,9 +48,7 @@ public class BookRequestServiceImpl implements BookRequestService {
         }
 
         request.setRequestStatus(BookRequestStatus.OPENED);
-        BookRequest newRequest = requestRepository.saveRequest(request);
-
-        return newRequest;
+        return requestRepository.saveRequest(request);
     }
 
     @Override
@@ -78,18 +76,18 @@ public class BookRequestServiceImpl implements BookRequestService {
                                r.getRequestStatus().equals(BookRequestStatus.OPENED));
     }
 
-    /**
-     * Не совсем понятная формулировка в тз "Список запросов на книгу (сортировать по количеству запросов)",
-     * т.к. странно сортировать запросы по количеству запросов. Если бы нужно было сортировать книги по количеству
-     * запросов на них, тогда понятно. В любом случае сделал как понял), но через запросы sql это было бы сделать проще.
-     * Плюс появляются дубли, точнее почти одинаковые дто.
-     */
+    @Override
+    public void closeRequestByBookId(long bookId) {
+        requestRepository.getAllRequests().stream()
+                .filter(r -> r.getBookId() == bookId && r.getRequestStatus() == BookRequestStatus.OPENED)
+                .forEach(r -> r.setRequestStatus(BookRequestStatus.CLOSED));
+    }
+
     @Override
     public Collection<BookRequestDto> getSortedRequest(Comparator<BookRequestDto> comparator) {
         List<BookRequest> bookRequests = new ArrayList<>(requestRepository.getAllRequests());
         List<BookRequestDto> bookRequestDtos = makeRequestDto(bookRequests);
         bookRequestDtos.sort(comparator);
-
         return bookRequestDtos;
     }
 
@@ -106,8 +104,8 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     private List<BookRequestDto> makeRequestDto(List<BookRequest> bookRequests) {
         List<BookRequestDto> response = new ArrayList<>();
-
         Map<Long, Long> requestCounts = new HashMap<>();
+
         for (BookRequest br : bookRequests) {
             requestCounts.put(br.getBookId(), requestCounts.getOrDefault(br.getBookId(), 0L) + 1);
         }

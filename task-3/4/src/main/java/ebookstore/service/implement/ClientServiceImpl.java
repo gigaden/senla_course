@@ -22,20 +22,16 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client saveClient(Client client) {
-        Client newClient = clientRepository.saveClient(client);
-
-        return newClient;
+        return clientRepository.saveClient(client);
     }
 
     @Override
     public Collection<Client> getAllClients() {
-
         return clientRepository.getAllClients().values();
     }
 
     @Override
     public Client getClientById(long clientId) {
-
         return clientRepository.getClient(clientId)
                 .orElseThrow(() -> new ClientNotFoundException(ClientErrorMessages.FIND_ERROR));
     }
@@ -43,9 +39,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Client updateClient(Client client) {
         Client oldClient = getClientById(client.getId());
-        Client newClient = clientRepository.updateClient(oldClient);
-
-        return newClient;
+        return clientRepository.updateClient(oldClient);
     }
 
     @Override

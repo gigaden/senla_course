@@ -3,17 +3,21 @@ package ebookstore.repository.implement;
 import ebookstore.model.Book;
 import ebookstore.repository.BookRepository;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class InMemoryBookRepository implements BookRepository {
+public class InMemoryBookRepository implements BookRepository, Serializable {
 
+    @Serial
+    private static final long serialVersionUID = 1L;
     private static InMemoryBookRepository instance;
 
-    private static Map<Long, Book> books;
-    private static long bookId;
+    private Map<Long, Book> books;
+    private long bookId;
 
     private InMemoryBookRepository() {
         books = new HashMap<>();

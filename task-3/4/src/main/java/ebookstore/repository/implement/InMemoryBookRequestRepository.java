@@ -4,17 +4,21 @@ import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.repository.BookRequestRepository;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class InMemoryBookRequestRepository implements BookRequestRepository {
+public class InMemoryBookRequestRepository implements BookRequestRepository, Serializable {
 
+    @Serial
+    private static final long serialVersionUID = 1L;
     private static InMemoryBookRequestRepository instance;
 
-    private static Map<Long, BookRequest> requests;
-    private static long requestId;
+    private Map<Long, BookRequest> requests;
+    private long requestId;
 
     private InMemoryBookRequestRepository() {
         requests = new HashMap<>();
@@ -73,9 +77,6 @@ public class InMemoryBookRequestRepository implements BookRequestRepository {
     }
 
     private long generateId() {
-        long newId = requestId;
-        requestId++;
-
-        return newId;
+        return requestId++;
     }
 }
