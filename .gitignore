@@ -21,3 +21,7 @@ target/
 *.iws
 *.iml
 *.ipr
+/books.dat
+/clients.dat
+/orders.dat
+/requests.dat
