@@ -7,6 +7,8 @@ import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.service.OrderService;
 import ebookstore.service.csv.reader.OrderCsvReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -22,64 +24,64 @@ public class ConsoleOrderController {
     @Autowired
     private OrderCsvReader csvReader;
 
+    private static final Logger log = LoggerFactory.getLogger(ConsoleOrderController.class);
+
     public ConsoleOrderController() {
-        // Конструктор без параметров для DI
     }
 
     public void saveOrder(Order order) {
-        System.out.println("Сохраняем заказ в базу");
-        Order savedOrder = orderService.createOrder(order);
-        System.out.printf("Сохранили заказ: %s\n", savedOrder);
+        log.info("Создаём заказ");
+        orderService.createOrder(order);
+        log.info("Заказ успешно создан");
     }
 
     public void getOrder(long orderId) {
-        System.out.printf("Получаем заказ с id = %d\n", orderId);
-        Order order = orderService.getOrderById(orderId);
-        System.out.printf("Получили заказ: %s\n", order);
+        log.info("Получаем заказ с id={}", orderId);
+        orderService.getOrderById(orderId);
+        log.info("Заказ получен с id={}", orderId);
     }
 
     public void getAllOrdersByDateOfCompleting() {
-        System.out.println("Получаем все заказы, отсортированные по дате завершения");
+        log.info("Получаем заказы, отсортированные по дате завершения");
         Collection<Order> orders = orderService.getAllOrders(
                 Comparator.comparing(
                         Order::getCompletedOn,
                         Comparator.nullsLast(Comparator.naturalOrder())
                 )
         );
-        System.out.printf("Получили все заказы, отсортированные по дате завершения: %s\n", orders);
+        log.info("Получено заказов: {}", orders.size());
     }
 
     public void getAllOrdersByPrice() {
-        System.out.println("Получаем все заказы, отсортированные по цене");
-        Collection<Order> orders = orderService.getAllOrders(new Comparator<Order>() {
-            @Override
-            public int compare(Order o1, Order o2) {
-                return (int) o1.getBook().getPrice() - (int) o2.getBook().getPrice();
-            }
-        });
-        System.out.printf("Получили все заказы, отсортированные по цене: %s\n", orders);
+        log.info("Получаем заказы, отсортированные по цене");
+        Collection<Order> orders = orderService.getAllOrders(
+                Comparator.comparingInt(o -> (int) o.getBook().getPrice())
+        );
+        log.info("Получено заказов: {}", orders.size());
     }
 
     public void getAllOrdersByStatus() {
-        System.out.println("Получаем все заказы, отсортированные по статусу");
-        Collection<Order> orders = orderService.getAllOrders(Comparator.comparing(Order::getOrderStatus));
-        System.out.printf("Получили все заказы, отсортированные по статусу: %s\n", orders);
+        log.info("Получаем заказы, отсортированные по статусу");
+        Collection<Order> orders = orderService.getAllOrders(
+                Comparator.comparing(Order::getOrderStatus)
+        );
+        log.info("Получено заказов: {}", orders.size());
     }
 
     public void changeOrderStatus(long orderId, OrderStatus orderStatus) {
-        System.out.printf("Меняем статус заказа с id = %d\n", orderId);
+        log.info("Меняем статус заказа id={} на {}", orderId, orderStatus);
         orderService.changeStatus(orderId, orderStatus);
-        System.out.printf("Изменили статус заказа с id = %d\n", orderId);
+        log.info("Статус заказа изменён id={}", orderId);
     }
 
     public void cancelOrder(long orderId) {
-        System.out.printf("Меняем статус заказа с id = %d на отменённый\n", orderId);
+        log.info("Отменяем заказ id={}", orderId);
         orderService.cancelOrder(orderId);
-        System.out.printf("Изменили статус заказа с id = %d на отменённый\n", orderId);
+        log.info("Заказ отменён id={}", orderId);
     }
 
     public void getCompletedOrdersByDate(LocalDate start, LocalDate end) {
-        System.out.printf("Получаем выполненные заказы за период с %s по %s, отсортированные по дате%n", start, end);
+        log.info("Получаем выполненные заказы за период {} - {}, сортировка по дате", start, end);
         Collection<Order> orders = orderService.getCompletedOrdersInPeriod(
                 start,
                 end,
@@ -88,55 +90,56 @@ public class ConsoleOrderController {
                         Comparator.nullsLast(Comparator.naturalOrder())
                 )
         );
-        System.out.printf("Получили выполненные заказы, отсортированные по дате: %s\n", orders);
+        log.info("Получено выполненных заказов: {}", orders.size());
     }
 
     public void getCompletedOrdersByPrice(LocalDate start, LocalDate end) {
-        System.out.printf("Получаем выполненные заказы за период с %s по %s, отсортированные по цене\n", start, end);
+        log.info("Получаем выполненные заказы за период {} - {}, сортировка по цене", start, end);
         Collection<Order> orders = orderService.getCompletedOrdersInPeriod(
                 start,
                 end,
                 Comparator.comparingInt(o -> (int) o.getBook().getPrice())
         );
-        System.out.printf("Получили выполненные заказы, отсортированные по цене: %s\n", orders);
+        log.info("Получено выполненных заказов: {}", orders.size());
     }
 
     public void getEarnedAmountInPeriod(LocalDate start, LocalDate end) {
-        System.out.printf("Получаем сумму заработанных средств за период с %s по %s\n", start, end);
-        double earnedAmount = orderService.getEarnedAmountInPeriod(start, end);
-        System.out.printf("Получили сумму заработанных средств за период: %.2f\n", earnedAmount);
+        log.info("Получаем сумму заработанных средств за период {} - {}", start, end);
+        double amount = orderService.getEarnedAmountInPeriod(start, end);
+        log.info("Получена сумма заработанных средств: {}", amount);
     }
 
     public void getCompletedOrdersCountInPeriod(LocalDate start, LocalDate end) {
-        System.out.printf("Получаем количество выполненных заказов за период с %s по %s\n", start, end);
-        int ordersCount = orderService.getCompletedOrdersCountInPeriod(start, end);
-        System.out.printf("Получили количество выполненных заказов за период: %d\n", ordersCount);
+        log.info("Получаем количество выполненных заказов за период {} - {}", start, end);
+        int count = orderService.getCompletedOrdersCountInPeriod(start, end);
+        log.info("Получено количество выполненных заказов: {}", count);
     }
 
     public void getOrderDetails(long orderId) {
-        System.out.printf("Получаем детали заказа с id = %d\n", orderId);
-        OrderDetailsDto orderDetails = orderService.getOrderDetails(orderId);
-        System.out.printf("Получили детали заказа: %s\n", orderDetails);
+        log.info("Получаем детали заказа id={}", orderId);
+        OrderDetailsDto details = orderService.getOrderDetails(orderId);
+        log.info("Получены детали заказа id={}", orderId);
     }
 
     public void importOrdersFromCsv(String filePath) {
-        System.out.println("Импортируем заказы из файла: " + filePath);
+        log.info("Импортируем заказы из CSV файла {}", filePath);
         try {
             List<List<String>> ordersData = csvReader.readFromCsv(filePath);
-            System.out.println("Найдено записей в файле: " + ordersData.size());
+            log.info("Найдено записей в CSV файле: {}", ordersData.size());
             csvReader.saveOrderFromCsv(ordersData);
+            log.info("Импорт заказов завершён успешно");
         } catch (Exception e) {
-            System.out.println("Ошибка при импорте заказов: " + e.getMessage());
+            log.error("Ошибка при импорте заказов из CSV файла {}", filePath, e);
         }
     }
 
     public void exportOrdersToCsv(String filePath) {
-        System.out.println("Экспортируем заказы в CSV файл: " + filePath);
+        log.info("Экспортируем заказы в CSV файл {}", filePath);
         try {
             orderService.exportOrdersToCsv(filePath);
-            System.out.println("Экспорт заказов успешно завершен!");
+            log.info("Экспорт заказов завершён успешно");
         } catch (Exception e) {
-            System.out.println("Ошибка при экспорте заказов: " + e.getMessage());
+            log.error("Ошибка при экспорте заказов в CSV файл {}", filePath, e);
         }
     }
 }

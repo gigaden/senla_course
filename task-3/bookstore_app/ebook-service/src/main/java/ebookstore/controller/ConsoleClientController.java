@@ -5,6 +5,8 @@ import di.annotation.Component;
 import ebookstore.model.Client;
 import ebookstore.service.ClientService;
 import ebookstore.service.csv.reader.ClientCsvReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,58 +20,60 @@ public class ConsoleClientController {
     @Autowired
     private ClientCsvReader csvReader;
 
+    private static final Logger log = LoggerFactory.getLogger(ConsoleClientController.class);
+
     public ConsoleClientController() {
-        // Конструктор без параметров для DI
     }
 
     public void saveClient(Client client) {
-        System.out.println("Сохраняем клиента в базу");
-        Client savedClient = clientService.saveClient(client);
-        System.out.printf("Сохранили клиента: %s\n", savedClient);
+        log.info("Сохраняем клиента");
+        clientService.saveClient(client);
+        log.info("Клиент успешно сохранён");
     }
 
     public void getAllClients() {
-        System.out.println("Получаем всех клиентов");
+        log.info("Получаем всех клиентов");
         Collection<Client> clients = clientService.getAllClients();
-        System.out.printf("Получили всех клиентов: %s\n", clients);
+        log.info("Получено клиентов: {}", clients.size());
     }
 
     public void getClient(long clientId) {
-        System.out.printf("Получаем клиента с id = %d\n", clientId);
-        Client client = clientService.getClientById(clientId);
-        System.out.printf("Получили клиента: %s\n", client);
+        log.info("Получаем клиента с id={}", clientId);
+        clientService.getClientById(clientId);
+        log.info("Клиент получен с id={}", clientId);
     }
 
     public void updateClient(Client client) {
-        System.out.printf("Обновляем клиента с id = %d\n", client.getId());
-        Client newClient = clientService.updateClient(client);
-        System.out.printf("Обновили клиента: %s\n", newClient);
+        log.info("Обновляем клиента с id={}", client.getId());
+        clientService.updateClient(client);
+        log.info("Клиент обновлён с id={}", client.getId());
     }
 
     public void deleteClient(long clientId) {
-        System.out.printf("Удаляем клиента с id = %d\n", clientId);
+        log.info("Удаляем клиента с id={}", clientId);
         clientService.deleteClientById(clientId);
-        System.out.printf("Удалили клиента: %s\n", clientId);
+        log.info("Клиент удалён с id={}", clientId);
     }
 
     public void importClientsFromCsv(String filePath) {
-        System.out.println("Импортируем клиентов из файла: " + filePath);
+        log.info("Импортируем клиентов из CSV файла {}", filePath);
         try {
-            List<List<String>> booksData = csvReader.readFromCsv(filePath);
-            System.out.println("Найдено записей в файле: " + booksData.size());
-            csvReader.saveClientFromCsv(booksData);
+            List<List<String>> clientsData = csvReader.readFromCsv(filePath);
+            log.info("Найдено записей в CSV файле: {}", clientsData.size());
+            csvReader.saveClientFromCsv(clientsData);
+            log.info("Импорт клиентов завершён успешно");
         } catch (Exception e) {
-            System.out.println("Ошибка при импорте клиентов: " + e.getMessage());
+            log.error("Ошибка при импорте клиентов из CSV файла {}", filePath, e);
         }
     }
 
     public void exportClientsToCsv(String filePath) {
-        System.out.println("Экспортируем клиентов в CSV файл: " + filePath);
+        log.info("Экспортируем клиентов в CSV файл {}", filePath);
         try {
             clientService.exportClientsToCsv(filePath);
-            System.out.println("Экспорт клиентов успешно завершен!");
+            log.info("Экспорт клиентов завершён успешно");
         } catch (Exception e) {
-            System.out.println("Ошибка при экспорте клиентов: " + e.getMessage());
+            log.error("Ошибка при экспорте клиентов в CSV файл {}", filePath, e);
         }
     }
 }

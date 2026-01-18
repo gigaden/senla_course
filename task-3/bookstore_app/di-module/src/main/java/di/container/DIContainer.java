@@ -75,12 +75,12 @@ public class DIContainer {
                     Object dependency = getBean(field.getType());
                     if (dependency == null) {
                         throw new RuntimeException("Не найдена зависимость для поля " +
-                                field.getName() + " в классе " + clazz.getName());
+                                                   field.getName() + " в классе " + clazz.getName());
                     }
                     field.set(bean, dependency);
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException("Ошибка внедрения зависимости в поле " +
-                            field.getName() + " класса " + clazz.getName(), e);
+                                               field.getName() + " класса " + clazz.getName(), e);
                 }
             }
         }
@@ -95,7 +95,7 @@ public class DIContainer {
                 if (method.getParameterCount() != 0) {
                     throw new RuntimeException(
                             "@PostConstruct метод должен быть без параметров: "
-                                    + clazz.getName() + "." + method.getName()
+                            + clazz.getName() + "." + method.getName()
                     );
                 }
 
@@ -105,7 +105,7 @@ public class DIContainer {
                 } catch (Exception e) {
                     throw new RuntimeException(
                             "Ошибка при вызове @PostConstruct метода: "
-                                    + clazz.getName() + "." + method.getName(), e
+                            + clazz.getName() + "." + method.getName(), e
                     );
                 }
             }

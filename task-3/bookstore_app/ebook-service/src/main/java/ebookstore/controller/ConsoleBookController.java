@@ -7,6 +7,8 @@ import ebookstore.model.Book;
 import ebookstore.model.enums.BookStatus;
 import ebookstore.service.BookService;
 import ebookstore.service.csv.reader.BookCsvReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -21,42 +23,43 @@ public class ConsoleBookController {
     @Autowired
     private BookCsvReader csvReader;
 
+    private static final Logger log = LoggerFactory.getLogger(ConsoleBookController.class);
+
     public ConsoleBookController() {
-        // Конструктор без параметров для DI
     }
 
     public void saveBook(Book book) {
-        System.out.println("Сохраняем книгу в базу");
-        Book savedBook = bookService.saveBook(book);
-        System.out.printf("Сохранили книгу: %s\n", savedBook);
+        log.info("Сохраняем в базу книгу {}", book.getTitle());
+        bookService.saveBook(book);
+        log.info("Сохранили в базу книгу {}", book.getTitle());
     }
 
     public void getAllBooks() {
-        System.out.println("Получаем все книги");
+        log.info("Получаем все книги");
         Collection<Book> books = bookService.getAllBooks();
-        System.out.printf("Получили все книги: %s\n", books);
+        log.info("Получено книг: {}", books.size());
     }
 
     public void getAllBooksByAlphabet() {
-        System.out.println("Получаем все книги, отсортированные по алфавиту");
+        log.info("Получаем все книги, отсортированные по алфавиту");
         Collection<Book> books = bookService.getAllBooks(Comparator.comparing(Book::getTitle));
-        System.out.printf("Получили все книги по алфавиту: %s\n", books);
+        log.info("Получено книг по алфавиту: {}", books.size());
     }
 
     public void getAllBooksByDateOfPublish() {
-        System.out.println("Получаем все книги, отсортированные по дате издания");
+        log.info("Получаем все книги, отсортированные по дате издания");
         Collection<Book> books = bookService.getAllBooks(Comparator.comparing(Book::getDateOfPublication));
-        System.out.printf("Получили все книги по дате издания: %s\n", books);
+        log.info("Получено книг по дате издания: {}", books.size());
     }
 
     public void getAllBooksByPrice() {
-        System.out.println("Получаем все книги, отсортированные по цене");
+        log.info("Получаем все книги, отсортированные по цене");
         Collection<Book> books = bookService.getAllBooks(Comparator.comparing(Book::getPrice));
-        System.out.printf("Получили все книги по цене: %s\n", books);
+        log.info("Получено книг по цене: {}", books.size());
     }
 
     public void getAllBooksByAvailability() {
-        System.out.println("Получаем все книги, отсортированные по наличию на складе");
+        log.info("Получаем все книги, отсортированные по наличию на складе");
         Collection<Book> books = bookService.getAllBooks(new Comparator<Book>() {
             @Override
             public int compare(Book o1, Book o2) {
@@ -69,57 +72,58 @@ public class ConsoleBookController {
                 }
             }
         });
-        System.out.printf("Получили все книги по наличию на складе: %s\n", books);
+        log.info("Получено книг по наличию на складе: {}", books.size());
     }
 
     public void getBook(long bookId) {
-        System.out.printf("Получаем книгу с id = %d\n", bookId);
+        log.info("Получаем книгу с id={}", bookId);
         Book book = bookService.getBookById(bookId);
-        System.out.printf("Получили книгу: %s\n", book);
+        log.info("Получена книга с id={}", book.getId());
     }
 
     public void updateBook(Book book) {
-        System.out.printf("Обновляем книгу с id = %d\n", book.getId());
-        Book newBook = bookService.updateBook(book);
-        System.out.printf("Обновили книгу: %s\n", newBook);
+        log.info("Обновляем книгу с id={}", book.getId());
+        bookService.updateBook(book);
+        log.info("Книга обновлена с id={}", book.getId());
     }
 
     public void deleteBook(long bookId) {
-        System.out.printf("Удаляем книгу с id = %d\n", bookId);
+        log.info("Удаляем книгу с id={}", bookId);
         bookService.deleteBookById(bookId);
-        System.out.printf("Удалили книгу: %s\n", bookId);
+        log.info("Книга удалена с id={}", bookId);
     }
 
     public void changeBookStatusToAbsent(long bookId) {
-        System.out.printf("Меняем статус книги с id = %d на отсутствует\n", bookId);
+        log.info("Меняем статус книги на ABSENT, id={}", bookId);
         bookService.makeBookAbsent(bookId);
-        System.out.printf("Изменили статус книги: %s\n", bookId);
+        log.info("Статус книги изменён на ABSENT, id={}", bookId);
     }
 
     public void getBookDescription(long bookId) {
-        System.out.printf("Получаем описание книги с id = %d%n", bookId);
+        log.info("Получаем описание книги с id={}", bookId);
         BookDescriptionDto bookDescription = bookService.getBookDescription(bookId);
-        System.out.printf("Получили описание книги: %s\n", bookDescription);
+        log.info("Получено описание книги с id={}", bookId);
     }
 
     public void importBooksFromCsv(String filePath) {
-        System.out.println("Импортируем книги из файла: " + filePath);
+        log.info("Импортируем книги из CSV файла {}", filePath);
         try {
             List<List<String>> booksData = csvReader.readFromCsv(filePath);
-            System.out.println("Найдено записей в файле: " + booksData.size());
+            log.info("Найдено записей в CSV файле: {}", booksData.size());
             csvReader.saveBookFromCsv(booksData);
+            log.info("Импорт книг из CSV завершён успешно");
         } catch (Exception e) {
-            System.out.println("Ошибка при импорте книг: " + e.getMessage());
+            log.error("Ошибка при импорте книг из CSV файла {}", filePath, e);
         }
     }
 
     public void exportBooksToCsv(String filePath) {
-        System.out.println("Экспортируем книги в CSV файл: " + filePath);
+        log.info("Экспортируем книги в CSV файл {}", filePath);
         try {
             bookService.exportBooksToCsv(filePath);
-            System.out.println("Экспорт книг успешно завершен!");
+            log.info("Экспорт книг в CSV завершён успешно");
         } catch (Exception e) {
-            System.out.println("Ошибка при экспорте книг: " + e.getMessage());
+            log.error("Ошибка при экспорте книг в CSV файл {}", filePath, e);
         }
     }
 }

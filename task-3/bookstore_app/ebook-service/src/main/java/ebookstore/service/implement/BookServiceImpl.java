@@ -15,6 +15,8 @@ import ebookstore.repository.OrderRepository;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.BookService;
 import ebookstore.service.csv.writer.BookCsvExporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,6 +29,8 @@ public class BookServiceImpl implements BookService {
 
     @ConfigProperty(configFileName = "application.properties", propertyName = "month_quantity", type = Long.class)
     private Long monthQuantity;
+
+    private static final long DEFAULT_MONTH_QUANTITY = 6L;
 
     @ConfigProperty(configFileName = "application.properties", propertyName = "mark_request_completed", type = Boolean.class)
     private Boolean markRequestCompleted;
@@ -43,19 +47,21 @@ public class BookServiceImpl implements BookService {
     @Autowired
     private BookRequestService requestService;
 
-    public BookServiceImpl() {
-    }
+    private static final Logger log = LoggerFactory.getLogger(BookServiceImpl.class);
 
     @Override
     public Book saveBook(Book book) {
         if (book.getId() == 0) {
             book.setStatus(BookStatus.AVAILABLE);
+            log.debug("Установлен статус AVAILABLE для новой книги");
         }
+
         Book newBook = bookRepository.saveBook(book);
 
-        if (requestService.requestIsOpenForBookWithId(book.getId()) &&
-            markRequestCompleted != null && markRequestCompleted) {
+        if (requestService.requestIsOpenForBookWithId(book.getId())
+            && Boolean.TRUE.equals(markRequestCompleted)) {
             requestService.closeRequestByBookId(book.getId());
+            log.info("Закрыт открытый запрос на книгу id={}", book.getId());
         }
 
         return newBook;
@@ -76,7 +82,10 @@ public class BookServiceImpl implements BookService {
     @Override
     public Book getBookById(long bookId) {
         return bookRepository.getBook(bookId)
-                .orElseThrow(() -> new BookNotFoundException(BookErrorMessages.FIND_ERROR));
+                .orElseThrow(() -> {
+                    log.error("Книга с id={} не найдена", bookId);
+                    return new BookNotFoundException(BookErrorMessages.FIND_ERROR);
+                });
     }
 
     @Override
@@ -95,28 +104,30 @@ public class BookServiceImpl implements BookService {
     public void makeBookAbsent(long bookId) {
         Book book = getBookById(bookId);
         book.setStatus(BookStatus.ABSENT);
+        log.info("Статус книги изменён на ABSENT, id={}", bookId);
     }
 
     @Override
     public Collection<Book> getStaleBooks(Comparator<Book> comparator) {
-        List<Book> staleBooks = new ArrayList<>();
-        Collection<Book> allBooks = bookRepository.getAllBooks();
-
         if (monthQuantity == null) {
-            monthQuantity = 6L; // Значение по умолчанию
+            monthQuantity = DEFAULT_MONTH_QUANTITY;
+            log.debug("monthQuantity не задан, используем значение по умолчанию = {}", DEFAULT_MONTH_QUANTITY);
         }
 
-        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(monthQuantity);
+        LocalDateTime thresholdDate = LocalDateTime.now().minusMonths(monthQuantity);
+
+        List<Book> staleBooks = new ArrayList<>();
+        Collection<Book> allBooks = bookRepository.getAllBooks();
+        Collection<Order> allOrders = orderRepository.getAllOrders();
 
         for (Book book : allBooks) {
             boolean hasRecentOrder = false;
-            Collection<Order> allOrders = orderRepository.getAllOrders();
 
             for (Order order : allOrders) {
                 if (order.getBook().getId() == book.getId()
-                    && order.getOrderStatus().equals(OrderStatus.COMPLETED)
+                    && order.getOrderStatus() == OrderStatus.COMPLETED
                     && order.getCompletedOn() != null
-                    && order.getCompletedOn().isAfter(sixMonthsAgo.toLocalDate())) {
+                    && order.getCompletedOn().isAfter(thresholdDate.toLocalDate())) {
                     hasRecentOrder = true;
                     break;
                 }
