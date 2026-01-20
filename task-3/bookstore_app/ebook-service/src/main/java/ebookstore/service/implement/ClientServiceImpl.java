@@ -8,6 +8,8 @@ import ebookstore.model.Client;
 import ebookstore.repository.ClientRepository;
 import ebookstore.service.ClientService;
 import ebookstore.service.csv.writer.ClientCsvExporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
@@ -20,8 +22,7 @@ public class ClientServiceImpl implements ClientService {
     @Autowired
     private ClientCsvExporter clientCsvExporter;
 
-    public ClientServiceImpl() {
-    }
+    private static final Logger log = LoggerFactory.getLogger(ClientServiceImpl.class);
 
     @Override
     public Client saveClient(Client client) {
@@ -36,7 +37,10 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Client getClientById(long clientId) {
         return clientRepository.getClient(clientId)
-                .orElseThrow(() -> new ClientNotFoundException(ClientErrorMessages.FIND_ERROR));
+                .orElseThrow(() -> {
+                    log.error("Клиент не найден id={}", clientId);
+                    return new ClientNotFoundException(ClientErrorMessages.FIND_ERROR);
+                });
     }
 
     @Override

@@ -7,6 +7,8 @@ import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.csv.reader.BookRequestCsvReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -21,61 +23,62 @@ public class ConsoleBookRequestController {
     @Autowired
     private BookRequestCsvReader csvReader;
 
+    private static final Logger log = LoggerFactory.getLogger(ConsoleBookRequestController.class);
+
     public ConsoleBookRequestController() {
-        // Конструктор без параметров для DI
     }
 
     public void createRequest(BookRequest request) {
-        System.out.println("Сохраняем запрос в базу");
-        BookRequest savedRequest = requestService.createRequest(request);
-        System.out.printf("Сохранили запрос: %s\n", savedRequest);
+        log.info("Создаём запрос на книгу");
+        requestService.createRequest(request);
+        log.info("Запрос успешно создан");
     }
 
     public void changeRequestStatusToClosed(long requestId) {
-        System.out.println("Закрываем запрос");
+        log.info("Закрываем запрос с id={}", requestId);
         requestService.changeRequestStatus(requestId, BookRequestStatus.CLOSED);
-        BookRequest request = requestService.getRequestById(requestId);
-        System.out.printf("Закрыли запрос: %s\n", request);
+        log.info("Запрос закрыт с id={}", requestId);
     }
 
     public void getRequest(long requestId) {
-        System.out.printf("Получаем запрос с id = %d\n", requestId);
-        BookRequest request = requestService.getRequestById(requestId);
-        System.out.printf("Получили запрос: %s\n", request);
+        log.info("Получаем запрос с id={}", requestId);
+        requestService.getRequestById(requestId);
+        log.info("Запрос получен с id={}", requestId);
     }
 
     public void getAllBookRequestByCountOfRequest() {
-        System.out.println("Получаем все запросы, отсортированные по количеству запросов");
-        Collection<BookRequestDto> bookRequestDtos = requestService
+        log.info("Получаем запросы, отсортированные по количеству запросов");
+        Collection<BookRequestDto> requests = requestService
                 .getSortedRequest(Comparator.comparing(BookRequestDto::getRequestCount).reversed());
-        System.out.printf("Получили все запросы по количеству запросов: %s\n", bookRequestDtos);
+        log.info("Получено запросов: {}", requests.size());
     }
 
     public void getAllBookRequestByTitleOfBookByAlphabet() {
-        System.out.println("Получаем все запросы, отсортированные по алфавиту");
-        Collection<BookRequestDto> bookRequestDtos = requestService
+        log.info("Получаем запросы, отсортированные по названию книги");
+        Collection<BookRequestDto> requests = requestService
                 .getSortedRequest(Comparator.comparing(BookRequestDto::getBookTitle));
-        System.out.printf("Получили все запросы по алфавиту: %s\n", bookRequestDtos);
+        log.info("Получено запросов: {}", requests.size());
     }
 
     public void importRequestsFromCsv(String filePath) {
-        System.out.println("Импортируем запросы из файла: " + filePath);
+        log.info("Импортируем запросы из CSV файла {}", filePath);
         try {
-            List<List<String>> booksData = csvReader.readFromCsv(filePath);
-            System.out.println("Найдено записей в файле: " + booksData.size());
-            csvReader.saveBookRequestFromCsv(booksData);
+            List<List<String>> requestsData = csvReader.readFromCsv(filePath);
+            log.info("Найдено записей в CSV файле: {}", requestsData.size());
+            csvReader.saveBookRequestFromCsv(requestsData);
+            log.info("Импорт запросов завершён успешно");
         } catch (Exception e) {
-            System.out.println("Ошибка при импорте запросов: " + e.getMessage());
+            log.error("Ошибка при импорте запросов из CSV файла {}", filePath, e);
         }
     }
 
     public void exportRequestsToCsv(String filePath) {
-        System.out.println("Экспортируем запросы в CSV файл: " + filePath);
+        log.info("Экспортируем запросы в CSV файл {}", filePath);
         try {
             requestService.exportRequestsToCsv(filePath);
-            System.out.println("Экспорт запросов успешно завершен!");
+            log.info("Экспорт запросов завершён успешно");
         } catch (Exception e) {
-            System.out.println("Ошибка при экспорте запросов: " + e.getMessage());
+            log.error("Ошибка при экспорте запросов в CSV файл {}", filePath, e);
         }
     }
 }

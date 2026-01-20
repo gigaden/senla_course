@@ -9,6 +9,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ConfigProperty {
     String configFileName() default "application.properties";
+
     String propertyName() default "";
+
     Class<?> type() default String.class;
 }

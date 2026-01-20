@@ -16,6 +16,8 @@ import ebookstore.service.BookRequestService;
 import ebookstore.service.ClientService;
 import ebookstore.service.OrderService;
 import ebookstore.service.csv.writer.OrderCsvExporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -38,8 +40,7 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderCsvExporter orderCsvExporter;
 
-    public OrderServiceImpl() {
-    }
+    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     @Override
     public Order createOrder(Order order) {
@@ -51,13 +52,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order getOrderById(long orderId) {
-        return orderRepository.getOrderById(orderId).orElseThrow(() -> new OrderNotFoundException(OrderErrorMessages.FIND_ERROR));
+        return orderRepository.getOrderById(orderId)
+                .orElseThrow(() -> {
+                    log.error("Заказ не найден id={}", orderId);
+                    return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
+                });
     }
 
     @Override
     public Collection<Order> getAllOrders() {
-        List<Order> orders = new ArrayList<>(orderRepository.getAllOrders());
-        return List.copyOf(orders);
+        return List.copyOf(orderRepository.getAllOrders());
     }
 
     @Override
@@ -71,24 +75,28 @@ public class OrderServiceImpl implements OrderService {
     public void changeStatus(long orderId, OrderStatus orderStatus) {
         Order order = getOrderById(orderId);
 
-        if (orderStatus.equals(OrderStatus.COMPLETED)) {
+        if (orderStatus == OrderStatus.COMPLETED) {
             checkRequestIfOrderStatusCompleted(order);
             order.setCompletedOn(LocalDate.now());
         }
 
         order.setOrderStatus(orderStatus);
+        log.info("Статус заказа id={} изменён на {}", orderId, orderStatus);
     }
 
     @Override
     public void cancelOrder(long orderId) {
-        Order order = getOrderById(orderId);
-        changeStatus(order.getOrderId(), OrderStatus.CANCELED);
+        changeStatus(orderId, OrderStatus.CANCELED);
     }
 
     @Override
-    public Collection<Order> getCompletedOrdersInPeriod(LocalDate start, LocalDate end, Comparator<Order> comparator) {
+    public Collection<Order> getCompletedOrdersInPeriod(
+            LocalDate start,
+            LocalDate end,
+            Comparator<Order> comparator
+    ) {
         return orderRepository.getAllOrders().stream()
-                .filter(o -> o.getOrderStatus().equals(OrderStatus.COMPLETED))
+                .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
                 .filter(o -> o.getCompletedOn() != null)
                 .filter(o -> !o.getCompletedOn().isBefore(start))
                 .filter(o -> !o.getCompletedOn().isAfter(end))
@@ -99,21 +107,21 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public double getEarnedAmountInPeriod(LocalDate start, LocalDate end) {
         return orderRepository.getAllOrders().stream()
-                .filter(order -> order.getOrderStatus().equals(OrderStatus.COMPLETED))
-                .filter(order -> order.getCompletedOn() != null)
-                .filter(order -> !order.getCompletedOn().isBefore(start))
-                .filter(order -> !order.getCompletedOn().isAfter(end))
-                .mapToDouble(order -> order.getBook().getPrice())
+                .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
+                .filter(o -> o.getCompletedOn() != null)
+                .filter(o -> !o.getCompletedOn().isBefore(start))
+                .filter(o -> !o.getCompletedOn().isAfter(end))
+                .mapToDouble(o -> o.getBook().getPrice())
                 .sum();
     }
 
     @Override
     public int getCompletedOrdersCountInPeriod(LocalDate start, LocalDate end) {
         return (int) orderRepository.getAllOrders().stream()
-                .filter(order -> order.getOrderStatus().equals(OrderStatus.COMPLETED))
-                .filter(order -> order.getCompletedOn() != null)
-                .filter(order -> !order.getCompletedOn().isBefore(start))
-                .filter(order -> !order.getCompletedOn().isAfter(end))
+                .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
+                .filter(o -> o.getCompletedOn() != null)
+                .filter(o -> !o.getCompletedOn().isBefore(start))
+                .filter(o -> !o.getCompletedOn().isAfter(end))
                 .count();
     }
 
@@ -142,17 +150,19 @@ public class OrderServiceImpl implements OrderService {
         orderCsvExporter.exportToCsv(allOrders, filePath);
     }
 
-    private void createRequestIfBookIsAbsent(Order newOrder) {
-        if (newOrder.getBook().getStatus().equals(BookStatus.ABSENT)) {
-            BookRequest bookRequest = new BookRequest(newOrder.getBook().getId(),
-                    newOrder.getClient().getId());
-            requestService.createRequest(bookRequest);
+    private void createRequestIfBookIsAbsent(Order order) {
+        if (order.getBook().getStatus() == BookStatus.ABSENT) {
+            requestService.createRequest(
+                    new BookRequest(order.getBook().getId(), order.getClient().getId())
+            );
+            log.info("Создан запрос на отсутствующую книгу id={}", order.getBook().getId());
         }
     }
 
     private void checkRequestIfOrderStatusCompleted(Order order) {
         if (requestService.requestIsOpenForBookWithId(order.getBook().getId())) {
-            System.out.printf("Нельзя завершить заказ с id = %d, т.к. есть активный запрос на книгу", order.getOrderId());
+            log.error("Нельзя завершить заказ id={}, есть активный запрос на книгу",
+                    order.getOrderId());
             throw new RuntimeException();
         }
     }

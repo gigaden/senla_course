@@ -5,6 +5,8 @@ import ebookstore.mapper.KeyMapper;
 import ebookstore.mapper.RowMapper;
 import ebookstore.mapper.StatementSetter;
 import ebookstore.util.ConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,6 +19,7 @@ import java.util.Optional;
 public abstract class BaseRepositoryDao {
 
     protected final ConnectionManager connectionManager;
+    private static final Logger log = LoggerFactory.getLogger(BaseRepositoryDao.class);
 
     protected BaseRepositoryDao(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
@@ -35,6 +38,7 @@ public abstract class BaseRepositoryDao {
             }
 
         } catch (SQLException e) {
+            log.error("Ошибка БД при получении записей: sql={}", sql, e);
             throw new DatabaseException("Ошибка выполнения запроса: " + e.getMessage());
         }
 
@@ -55,6 +59,7 @@ public abstract class BaseRepositoryDao {
                 if (keys.next()) {
                     keyMapper.map(keys, entity);
                 } else {
+                    log.error("Ошибка БД при получении id: sql={}, entity={}", sql, entity);
                     throw new DatabaseException("Не удалось получить сгенерированный id");
                 }
             }
@@ -62,6 +67,7 @@ public abstract class BaseRepositoryDao {
             return entity;
 
         } catch (SQLException e) {
+            log.error("Ошибка базы данных при сохранении: sql={}, entity={}", sql, entity, e);
             throw new DatabaseException("Ошибка сохранения сущности" + e);
         }
     }
@@ -82,6 +88,7 @@ public abstract class BaseRepositoryDao {
             }
 
         } catch (SQLException e) {
+            log.error("Ошибка БД при поиске: sql={}, params={}", sql, params, e);
             throw new DatabaseException("Ошибка выполнения findOne" + e);
         }
     }
@@ -94,12 +101,14 @@ public abstract class BaseRepositoryDao {
 
             int updated = ps.executeUpdate();
             if (updated == 0) {
+                log.error("Ошибка БД: обновление не затронуло ни одной строки: sql={}, entity={}", sql, entity);
                 throw new DatabaseException("Обновление не затронуло ни одной строки");
             }
 
             return entity;
 
         } catch (SQLException e) {
+            log.error("Ошибка БД при обновлении: sql={}, entity={}", sql, entity);
             throw new DatabaseException("Ошибка обновления сущности" + e);
         }
     }
@@ -112,10 +121,12 @@ public abstract class BaseRepositoryDao {
 
             int updated = ps.executeUpdate();
             if (updated == 0) {
+                log.error("Ошибка БД: обновление не затронуло ни одной строки: sql={}", sql);
                 throw new DatabaseException("Обновление не затронуло ни одной строки");
             }
 
         } catch (SQLException e) {
+            log.error("Ошибка БД при обновлении: sql={}", sql);
             throw new DatabaseException("Ошибка update" + e);
         }
     }
@@ -132,6 +143,7 @@ public abstract class BaseRepositoryDao {
             ps.executeUpdate();
 
         } catch (SQLException e) {
+            log.error("Ошибка БД при удалении: sql={}, params={}", sql, params);
             throw new DatabaseException("Ошибка удаления" + e);
         }
     }
@@ -150,6 +162,7 @@ public abstract class BaseRepositoryDao {
             }
 
         } catch (SQLException e) {
+            log.error("Ошибка БД при проверке существования: sql={}, params={}", sql, params);
             throw new DatabaseException("Ошибка проверки существования" + e);
         }
     }

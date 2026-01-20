@@ -11,12 +11,12 @@ import java.util.Properties;
 
 /**
  * Класс обрабатывает аннотации для пропертей и инжектит их
- * */
+ */
 public class ConfigurationInjector {
 
     /**
      * Класс инжектит нужные проперти в поля
-     * */
+     */
     public static void inject(Object object) {
         Class<?> clazz = object.getClass();
 
@@ -47,9 +47,10 @@ public class ConfigurationInjector {
 
     /**
      * Получаем значение из проперти по ключу
+     *
      * @param configFileName - файла, откуда будем брать проперти
-     * @param propertyName - ключ, по которому нужно получить значение из пропертей
-     * */
+     * @param propertyName   - ключ, по которому нужно получить значение из пропертей
+     */
     private static String getProperty(String configFileName, String propertyName) {
         Properties properties = new Properties();
         try (InputStream input = ConfigurationInjector.class.getClassLoader()
@@ -66,10 +67,11 @@ public class ConfigurationInjector {
 
     /**
      * По типу поля приводим значение проперти к нужному типу
-     * @param value - значение, которое нужно привести
-     * @param fieldType - тип поля
+     *
+     * @param value          - значение, которое нужно привести
+     * @param fieldType      - тип поля
      * @param annotationType - тип аннотации
-     * */
+     */
     private static Object convert(String value, Class<?> fieldType, Class<?> annotationType) {
         Class<?> targetType = (annotationType != String.class) ? annotationType : fieldType;
 
