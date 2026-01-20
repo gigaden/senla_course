@@ -1,3 +1,4 @@
+
 package di.container;
 
 import di.annotation.Autowired;
@@ -9,10 +10,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Класс - контейнер, который занимается управлением нашими бинами и их внедрением
+ * Класс - контейнер, который занимается управлением нашими бинами и их внедрением.
  */
-public class DIContainer {
+public final class DIContainer {
+
+    /**
+     * */
     private final Map<Class<?>, Object> singletonBeans = new HashMap<>();
+    /**
+     * */
     private static DIContainer instance;
 
     private DIContainer() {
@@ -26,12 +32,12 @@ public class DIContainer {
     }
 
     /**
-     * Регистрирует наши бины
+     * Регистрирует наши бины.
      *
-     * @param beanType - принимает класс(тип) бина
-     * @param bean     - сам объекта класса, который нужно зарегать
+     * @param beanType - принимает класс(тип) бина.
+     * @param bean     - сам объекта класса, который нужно зарегать.
      */
-    public void registerBean(Class<?> beanType, Object bean) {
+    public void registerBean(final Class<?> beanType, final Object bean) {
         singletonBeans.put(beanType, bean);
 
         // Регистрируем по интерфейсам, если они есть
@@ -41,16 +47,18 @@ public class DIContainer {
     }
 
     /**
-     * Получаем бин по типу класса
+     * Получаем бин по типу класса.
      *
-     * @param <T> - объект запрашиваемого класса
+     * @param <T> - объект запрашиваемого класса.
+     * @param beanType - тип бина.
+     * @return - получаем бин.
      */
-    public <T> T getBean(Class<T> beanType) {
+    public <T> T getBean(final Class<T> beanType) {
         return (T) singletonBeans.get(beanType);
     }
 
     /**
-     * внедряем зависимости
+     * внедряем зависимости.
      */
     public void initialize() {
         for (Object bean : singletonBeans.values()) {
@@ -63,9 +71,10 @@ public class DIContainer {
     }
 
     /**
-     * внедряем нужные реализации в аннотированные поля через рефлексию
+     * внедряем нужные реализации в аннотированные поля через рефлексию.
+     * @param bean бин.
      */
-    private void injectFieldDependencies(Object bean) {
+    private void injectFieldDependencies(final Object bean) {
         Class<?> clazz = bean.getClass();
 
         for (Field field : clazz.getDeclaredFields()) {
@@ -74,19 +83,19 @@ public class DIContainer {
                     field.setAccessible(true);
                     Object dependency = getBean(field.getType());
                     if (dependency == null) {
-                        throw new RuntimeException("Не найдена зависимость для поля " +
-                                                   field.getName() + " в классе " + clazz.getName());
+                        throw new RuntimeException("Не найдена зависимость для поля "
+                                                   + field.getName() + " в классе " + clazz.getName());
                     }
                     field.set(bean, dependency);
                 } catch (IllegalAccessException e) {
-                    throw new RuntimeException("Ошибка внедрения зависимости в поле " +
-                                               field.getName() + " класса " + clazz.getName(), e);
+                    throw new RuntimeException("Ошибка внедрения зависимости в поле "
+                                               + field.getName() + " класса " + clazz.getName(), e);
                 }
             }
         }
     }
 
-    private void invokePostConstruct(Object bean) {
+    private void invokePostConstruct(final Object bean) {
         Class<?> clazz = bean.getClass();
 
         for (Method method : clazz.getDeclaredMethods()) {
@@ -114,7 +123,8 @@ public class DIContainer {
 
 
     /**
-     * Получаем все бины
+     * Получаем все бины.
+     * @return возвращает мапу с бинами.
      */
     public Map<Class<?>, Object> getBeansMap() {
         return new HashMap<>(singletonBeans);

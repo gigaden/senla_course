@@ -1,3 +1,4 @@
+
 package ebookstore.service.implement;
 
 import di.annotation.Autowired;
@@ -16,26 +17,38 @@ import java.util.Collection;
 @Component
 public class ClientServiceImpl implements ClientService {
 
+    /**
+     * */
     @Autowired
     private ClientRepository clientRepository;
 
+    /**
+     * */
     @Autowired
     private ClientCsvExporter clientCsvExporter;
 
+    /**
+     * */
     private static final Logger log = LoggerFactory.getLogger(ClientServiceImpl.class);
 
+    /**
+     * */
     @Override
-    public Client saveClient(Client client) {
+    public Client saveClient(final Client client) {
         return clientRepository.saveClient(client);
     }
 
+    /**
+     * */
     @Override
     public Collection<Client> getAllClients() {
         return clientRepository.getAllClients().values();
     }
 
+    /**
+     * */
     @Override
-    public Client getClientById(long clientId) {
+    public Client getClientById(final long clientId) {
         return clientRepository.getClient(clientId)
                 .orElseThrow(() -> {
                     log.error("Клиент не найден id={}", clientId);
@@ -43,25 +56,33 @@ public class ClientServiceImpl implements ClientService {
                 });
     }
 
+    /**
+     * */
     @Override
-    public Client updateClient(Client client) {
+    public Client updateClient(final Client client) {
         Client oldClient = getClientById(client.getId());
         return clientRepository.updateClient(oldClient);
     }
 
+    /**
+     * */
     @Override
-    public void deleteClientById(long clientId) {
+    public void deleteClientById(final long clientId) {
         Client client = getClientById(clientId);
         clientRepository.deleteClient(client.getId());
     }
 
+    /**
+     * */
     @Override
-    public boolean checkClientIsExist(long clientId) {
+    public boolean checkClientIsExist(final long clientId) {
         return clientRepository.checkClientIsExist(clientId);
     }
 
+    /**
+     * */
     @Override
-    public void exportClientsToCsv(String filePath) {
+    public void exportClientsToCsv(final String filePath) {
         Collection<Client> allClients = clientRepository.getAllClients().values();
         clientCsvExporter.exportToCsv(allClients, filePath);
     }
