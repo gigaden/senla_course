@@ -2,7 +2,7 @@ package ebookstore.controller;
 
 import di.annotation.Autowired;
 import di.annotation.Component;
-import ebookstore.dto.BookRequestDto;
+import ebookstore.dto.RequestDto;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.service.BookRequestService;
@@ -48,15 +48,15 @@ public class ConsoleBookRequestController {
 
     public void getAllBookRequestByCountOfRequest() {
         log.info("Получаем запросы, отсортированные по количеству запросов");
-        Collection<BookRequestDto> requests = requestService
-                .getSortedRequest(Comparator.comparing(BookRequestDto::getRequestCount).reversed());
+        Collection<RequestDto> requests = requestService
+                .getSortedRequest(Comparator.comparing(RequestDto::getRequestCount).reversed());
         log.info("Получено запросов: {}", requests.size());
     }
 
     public void getAllBookRequestByTitleOfBookByAlphabet() {
         log.info("Получаем запросы, отсортированные по названию книги");
-        Collection<BookRequestDto> requests = requestService
-                .getSortedRequest(Comparator.comparing(BookRequestDto::getBookTitle));
+        Collection<RequestDto> requests = requestService
+                .getSortedRequest(Comparator.comparing(RequestDto::getBookTitle));
         log.info("Получено запросов: {}", requests.size());
     }
 

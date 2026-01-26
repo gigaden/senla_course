@@ -2,7 +2,7 @@ package ebookstore.service.implement;
 
 import di.annotation.Autowired;
 import di.annotation.Component;
-import ebookstore.dto.BookRequestDto;
+import ebookstore.dto.RequestDto;
 import ebookstore.exception.RequestNotFoundException;
 import ebookstore.exception.message.RequestErrorMessages;
 import ebookstore.model.Book;
@@ -94,9 +94,9 @@ public class BookRequestServiceImpl implements BookRequestService {
     }
 
     @Override
-    public Collection<BookRequestDto> getSortedRequest(Comparator<BookRequestDto> comparator) {
+    public Collection<RequestDto> getSortedRequest(Comparator<RequestDto> comparator) {
         List<BookRequest> requests = new ArrayList<>(requestRepository.getAllRequests());
-        List<BookRequestDto> dtos = makeRequestDto(requests);
+        List<RequestDto> dtos = makeRequestDto(requests);
         dtos.sort(comparator);
         return dtos;
     }
@@ -112,8 +112,8 @@ public class BookRequestServiceImpl implements BookRequestService {
         requestCsvExporter.exportToCsv(allRequests, filePath);
     }
 
-    private List<BookRequestDto> makeRequestDto(List<BookRequest> bookRequests) {
-        List<BookRequestDto> response = new ArrayList<>();
+    private List<RequestDto> makeRequestDto(List<BookRequest> bookRequests) {
+        List<RequestDto> response = new ArrayList<>();
         Map<Long, Long> requestCounts = new HashMap<>();
 
         for (BookRequest br : bookRequests) {
@@ -124,7 +124,7 @@ public class BookRequestServiceImpl implements BookRequestService {
         for (BookRequest br : bookRequests) {
             Book book = bookService.getBookById(br.getBookId());
             response.add(
-                    new BookRequestDto(br, requestCounts.get(br.getBookId()), book.getTitle())
+                    new RequestDto(br, requestCounts.get(br.getBookId()), book.getTitle())
             );
         }
 

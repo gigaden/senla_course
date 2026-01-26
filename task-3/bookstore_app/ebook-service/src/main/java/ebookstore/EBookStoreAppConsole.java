@@ -18,6 +18,8 @@ import ebookstore.repository.implement.dao.BookRepositoryDao;
 import ebookstore.repository.implement.dao.BookRequestRepositoryDao;
 import ebookstore.repository.implement.dao.ClientRepositoryDao;
 import ebookstore.repository.implement.dao.OrderRepositoryDao;
+import ebookstore.repository.implement.hiber.BookRepositoryHiber;
+import ebookstore.repository.implement.hiber.ClientRepositoryHiber;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.BookService;
 import ebookstore.service.ClientService;
@@ -65,12 +67,12 @@ public class EBookStoreAppConsole {
 
             container.registerBean(
                     BookRepository.class,
-                    new BookRepositoryDao(connectionManager)
+                    new BookRepositoryHiber()
             );
 
             container.registerBean(
                     ClientRepository.class,
-                    new ClientRepositoryDao(connectionManager));
+                    new ClientRepositoryHiber());
 
             container.registerBean(
                     OrderRepository.class,
