@@ -1,6 +1,6 @@
 package ebookstore.service;
 
-import ebookstore.dto.BookRequestDto;
+import ebookstore.dto.RequestDto;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 
@@ -17,7 +17,7 @@ public interface BookRequestService {
 
     boolean requestIsOpenForBookWithId(long bookId);
 
-    public Collection<BookRequestDto> getSortedRequest(Comparator<BookRequestDto> comparator);
+    public Collection<RequestDto> getSortedRequest(Comparator<RequestDto> comparator);
 
     boolean checkRequestIsExist(long requestId);
 

@@ -3,6 +3,8 @@ package ebookstore.controller;
 import di.annotation.Autowired;
 import di.annotation.Component;
 import ebookstore.dto.BookDescriptionDto;
+import ebookstore.dto.BookResponseDto;
+import ebookstore.mapper.BookMapper;
 import ebookstore.model.Book;
 import ebookstore.model.enums.BookStatus;
 import ebookstore.service.BookService;
@@ -34,33 +36,33 @@ public class ConsoleBookController {
         log.info("Сохранили в базу книгу {}", book.getTitle());
     }
 
-    public void getAllBooks() {
-        log.info("Получаем все книги");
-        Collection<Book> books = bookService.getAllBooks();
-        log.info("Получено книг: {}", books.size());
-    }
-
     public void getAllBooksByAlphabet() {
         log.info("Получаем все книги, отсортированные по алфавиту");
-        Collection<Book> books = bookService.getAllBooks(Comparator.comparing(Book::getTitle));
+        Collection<BookResponseDto> books = bookService.getAllBooks(Comparator.comparing(Book::getTitle)).stream()
+                .map(BookMapper::mapBookToResponseDto).toList();
+        System.out.println(books);
         log.info("Получено книг по алфавиту: {}", books.size());
     }
 
     public void getAllBooksByDateOfPublish() {
         log.info("Получаем все книги, отсортированные по дате издания");
-        Collection<Book> books = bookService.getAllBooks(Comparator.comparing(Book::getDateOfPublication));
+        Collection<BookResponseDto> books = bookService.getAllBooks(Comparator.comparing(Book::getDateOfPublication)).stream()
+                .map(BookMapper::mapBookToResponseDto).toList();
+        System.out.println(books);
         log.info("Получено книг по дате издания: {}", books.size());
     }
 
     public void getAllBooksByPrice() {
         log.info("Получаем все книги, отсортированные по цене");
-        Collection<Book> books = bookService.getAllBooks(Comparator.comparing(Book::getPrice));
+        Collection<BookResponseDto> books = bookService.getAllBooks(Comparator.comparing(Book::getPrice)).stream()
+                .map(BookMapper::mapBookToResponseDto).toList();
+        System.out.println(books);
         log.info("Получено книг по цене: {}", books.size());
     }
 
     public void getAllBooksByAvailability() {
         log.info("Получаем все книги, отсортированные по наличию на складе");
-        Collection<Book> books = bookService.getAllBooks(new Comparator<Book>() {
+        Collection<BookResponseDto> books = bookService.getAllBooks(new Comparator<Book>() {
             @Override
             public int compare(Book o1, Book o2) {
                 if (o1.getStatus() == BookStatus.AVAILABLE && o2.getStatus() != BookStatus.AVAILABLE) {
@@ -71,13 +73,16 @@ public class ConsoleBookController {
                     return 0;
                 }
             }
-        });
+        }).stream()
+                .map(BookMapper::mapBookToResponseDto).toList();
+        System.out.println(books);
         log.info("Получено книг по наличию на складе: {}", books.size());
     }
 
     public void getBook(long bookId) {
         log.info("Получаем книгу с id={}", bookId);
         Book book = bookService.getBookById(bookId);
+        System.out.println(BookMapper.mapBookToResponseDto(book));
         log.info("Получена книга с id={}", book.getId());
     }
 
