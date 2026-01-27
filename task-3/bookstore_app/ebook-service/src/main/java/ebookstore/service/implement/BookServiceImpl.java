@@ -141,7 +141,6 @@ public class BookServiceImpl implements BookService {
             return book;
 
         } catch (BookNotFoundException e) {
-            // Бизнес-исключение - не требует rollback, но транзакцию нужно закрыть
             rollbackTransaction(transaction);
             throw e;
         } catch (DatabaseException e) {
@@ -213,7 +212,7 @@ public class BookServiceImpl implements BookService {
                     });
 
             book.setStatus(BookStatus.ABSENT);
-            bookRepository.updateBook(book); // Нужно сохранить изменения!
+            bookRepository.updateBook(book);
 
             transaction.commit();
             log.info("Статус книги изменён на ABSENT, id={}", bookId);

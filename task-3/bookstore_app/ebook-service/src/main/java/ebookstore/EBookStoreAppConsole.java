@@ -19,7 +19,9 @@ import ebookstore.repository.implement.dao.BookRequestRepositoryDao;
 import ebookstore.repository.implement.dao.ClientRepositoryDao;
 import ebookstore.repository.implement.dao.OrderRepositoryDao;
 import ebookstore.repository.implement.hiber.BookRepositoryHiber;
+import ebookstore.repository.implement.hiber.BookRequestRepositoryHiber;
 import ebookstore.repository.implement.hiber.ClientRepositoryHiber;
+import ebookstore.repository.implement.hiber.OrderRepositoryHiber;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.BookService;
 import ebookstore.service.ClientService;
@@ -56,6 +58,13 @@ public class EBookStoreAppConsole {
     public void start() {
         consoleMenu.start();
     }
+    /*
+    * ТуДу:
+    * - поправить ошибку вложенных транзакций BookRequestServiceImpl public Collection<RequestDto> getSortedRequest(Comparator<RequestDto> comparator)
+    * - придумать чего сделать с дтохами и где их лучше маппить
+    * - задокументировать нормально
+    * - прикрутить чекстайл из тз и поправить свой проект под него, либо грузануть другой, не такой строгий
+    * */
 
     public static void main(String[] args) {
         try {
@@ -76,11 +85,11 @@ public class EBookStoreAppConsole {
 
             container.registerBean(
                     OrderRepository.class,
-                    new OrderRepositoryDao(connectionManager));
+                    new OrderRepositoryHiber());
 
             container.registerBean(
                     BookRequestRepository.class,
-                    new BookRequestRepositoryDao(connectionManager));
+                    new BookRequestRepositoryHiber());
 
             // Регистрируем CSV экспортеры
             container.registerBean(BookCsvExporter.class, new BookCsvExporter());
