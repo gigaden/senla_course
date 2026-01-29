@@ -2,7 +2,7 @@ package ebookstore.service.implement;
 
 import di.annotation.Autowired;
 import di.annotation.Component;
-import ebookstore.dto.OrderDetailsDto;
+import ebookstore.dto.order.OrderDetailsDto;
 import ebookstore.exception.DatabaseException;
 import ebookstore.exception.OrderNotFoundException;
 import ebookstore.exception.message.OrderErrorMessages;
@@ -87,7 +87,6 @@ public class OrderServiceImpl implements OrderService {
 
             transaction.commit();
             return order;
-
         } catch (OrderNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -112,7 +111,6 @@ public class OrderServiceImpl implements OrderService {
             Collection<Order> orders = orderRepository.getAllOrders();
             transaction.commit();
             return List.copyOf(orders);
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при получении всех заказов", e);
             rollbackTransaction(transaction);
@@ -135,7 +133,6 @@ public class OrderServiceImpl implements OrderService {
             orders.sort(comparator);
             transaction.commit();
             return List.copyOf(orders);
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при получении всех заказов", e);
             rollbackTransaction(transaction);
@@ -171,7 +168,6 @@ public class OrderServiceImpl implements OrderService {
 
             transaction.commit();
             log.info("Статус заказа id={} изменён на {}", orderId, orderStatus);
-
         } catch (OrderNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -212,7 +208,6 @@ public class OrderServiceImpl implements OrderService {
                     .filter(o -> !o.getCompletedOn().isAfter(end))
                     .sorted(comparator)
                     .toList();
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при получении завершенных заказов за период", e);
             rollbackTransaction(transaction);
@@ -241,7 +236,6 @@ public class OrderServiceImpl implements OrderService {
                     .filter(o -> !o.getCompletedOn().isAfter(end))
                     .mapToDouble(o -> o.getBook().getPrice())
                     .sum();
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при расчете суммы за период", e);
             rollbackTransaction(transaction);
@@ -269,7 +263,6 @@ public class OrderServiceImpl implements OrderService {
                     .filter(o -> !o.getCompletedOn().isBefore(start))
                     .filter(o -> !o.getCompletedOn().isAfter(end))
                     .count();
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при подсчете заказов за период", e);
             rollbackTransaction(transaction);
@@ -300,7 +293,6 @@ public class OrderServiceImpl implements OrderService {
 
             transaction.commit();
             return new OrderDetailsDto(order, client, book);
-
         } catch (OrderNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -325,7 +317,6 @@ public class OrderServiceImpl implements OrderService {
             boolean result = orderRepository.checkOrderIsExist(orderId);
             transaction.commit();
             return result;
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при проверке существования заказа с id={}", orderId, e);
             rollbackTransaction(transaction);
@@ -356,7 +347,6 @@ public class OrderServiceImpl implements OrderService {
 
             transaction.commit();
             return updatedOrder;
-
         } catch (OrderNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -382,7 +372,6 @@ public class OrderServiceImpl implements OrderService {
             transaction.commit();
 
             orderCsvExporter.exportToCsv(orders, filePath);
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при экспорте заказов в CSV", e);
             rollbackTransaction(transaction);

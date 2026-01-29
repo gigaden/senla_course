@@ -39,7 +39,6 @@ public class ClientCsvReader {
                         .collect(Collectors.toList());
                 importClients.add(lineData);
             }
-
         } catch (IOException e) {
             System.out.println("Ошибка чтения файла: " + e.getMessage());
         }
@@ -77,7 +76,6 @@ public class ClientCsvReader {
                     System.out.println("Добавлен клиент: " + name + " " + surname);
                 }
                 successCount++;
-
             } catch (Exception e) {
                 System.out.println("Ошибка при обработке строки: " + clientArr + " - " + e.getMessage());
                 errorCount++;

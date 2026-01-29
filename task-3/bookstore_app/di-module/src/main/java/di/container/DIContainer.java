@@ -11,7 +11,8 @@ import java.util.Map;
 /**
  * Класс - контейнер, который занимается управлением нашими бинами и их внедрением
  */
-public class DIContainer {
+public final class DIContainer {
+
     private final Map<Class<?>, Object> singletonBeans = new HashMap<>();
     private static DIContainer instance;
 

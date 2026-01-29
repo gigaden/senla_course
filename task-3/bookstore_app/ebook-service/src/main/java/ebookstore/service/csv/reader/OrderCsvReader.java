@@ -51,7 +51,6 @@ public class OrderCsvReader {
                         .collect(Collectors.toList());
                 importOrders.add(lineData);
             }
-
         } catch (IOException e) {
             System.out.println("Ошибка чтения файла: " + e.getMessage());
         }
@@ -95,7 +94,6 @@ public class OrderCsvReader {
                     System.out.println("Добавлен заказ: " + id);
                 }
                 successCount++;
-
             } catch (Exception e) {
                 System.out.println("Ошибка при обработке строки: " + orderArr + " - " + e.getMessage());
                 errorCount++;

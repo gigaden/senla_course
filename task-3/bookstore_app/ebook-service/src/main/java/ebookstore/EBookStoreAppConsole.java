@@ -14,10 +14,6 @@ import ebookstore.repository.BookRepository;
 import ebookstore.repository.BookRequestRepository;
 import ebookstore.repository.ClientRepository;
 import ebookstore.repository.OrderRepository;
-import ebookstore.repository.implement.dao.BookRepositoryDao;
-import ebookstore.repository.implement.dao.BookRequestRepositoryDao;
-import ebookstore.repository.implement.dao.ClientRepositoryDao;
-import ebookstore.repository.implement.dao.OrderRepositoryDao;
 import ebookstore.repository.implement.hiber.BookRepositoryHiber;
 import ebookstore.repository.implement.hiber.BookRequestRepositoryHiber;
 import ebookstore.repository.implement.hiber.ClientRepositoryHiber;
@@ -59,12 +55,12 @@ public class EBookStoreAppConsole {
         consoleMenu.start();
     }
     /*
-    * ТуДу:
-    * - поправить ошибку вложенных транзакций BookRequestServiceImpl public Collection<RequestDto> getSortedRequest(Comparator<RequestDto> comparator)
-    * - придумать чего сделать с дтохами и где их лучше маппить
-    * - задокументировать нормально
-    * - прикрутить чекстайл из тз и поправить свой проект под него, либо грузануть другой, не такой строгий
-    * */
+     * ТуДу:
+     * - только сейчас заметил, что нихрена ничего не валидирую нормально) - надо исправить
+     * - сделать дто на входящие объекты и валидацию для них
+     * - задокументировать больше
+     * - переделать логику обработки и выброса исключений
+     * */
 
     public static void main(String[] args) {
         try {
@@ -131,7 +127,6 @@ public class EBookStoreAppConsole {
             EBookStoreAppConsole ebookStoreApp = container.getBean(EBookStoreAppConsole.class);
 
             ebookStoreApp.start();
-
         } catch (Exception e) {
             System.err.println("Ошибка запуска приложения: " + e.getMessage());
             e.printStackTrace();

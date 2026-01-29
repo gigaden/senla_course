@@ -2,9 +2,11 @@ package ebookstore.service.implement;
 
 import di.annotation.Autowired;
 import di.annotation.Component;
+import ebookstore.dto.client.ClientResponseDto;
 import ebookstore.exception.ClientNotFoundException;
 import ebookstore.exception.DatabaseException;
 import ebookstore.exception.message.ClientErrorMessages;
+import ebookstore.mapper.ClientMapper;
 import ebookstore.model.Client;
 import ebookstore.repository.ClientRepository;
 import ebookstore.service.ClientService;
@@ -16,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Реализация сервиса для работы с клиентами.
@@ -35,7 +36,7 @@ public class ClientServiceImpl implements ClientService {
     private static final Logger log = LoggerFactory.getLogger(ClientServiceImpl.class);
 
     @Override
-    public Client saveClient(Client client) {
+    public ClientResponseDto saveClient(Client client) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
@@ -43,8 +44,7 @@ public class ClientServiceImpl implements ClientService {
             transaction = session.beginTransaction();
             Client savedClient = clientRepository.saveClient(client);
             transaction.commit();
-            return savedClient;
-
+            return ClientMapper.mapClientToResponseDto(savedClient);
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при сохранении клиента: {}", client, e);
             rollbackTransaction(transaction);
@@ -57,7 +57,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public Collection<Client> getAllClients() {
+    public Collection<ClientResponseDto> getAllClients() {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
@@ -65,8 +65,9 @@ public class ClientServiceImpl implements ClientService {
             transaction = session.beginTransaction();
             Collection<Client> clients = clientRepository.getAllClients().values();
             transaction.commit();
-            return List.copyOf(clients);
-
+            return clients.stream()
+                    .map(ClientMapper::mapClientToResponseDto)
+                    .toList();
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при получении всех клиентов", e);
             rollbackTransaction(transaction);
@@ -94,7 +95,6 @@ public class ClientServiceImpl implements ClientService {
 
             transaction.commit();
             return client;
-
         } catch (ClientNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -110,7 +110,12 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public Client updateClient(Client client) {
+    public ClientResponseDto getClientDtoById(long clientId) {
+        return ClientMapper.mapClientToResponseDto(getClientById(clientId));
+    }
+
+    @Override
+    public ClientResponseDto updateClient(Client client) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
@@ -127,8 +132,7 @@ public class ClientServiceImpl implements ClientService {
 
             Client updatedClient = clientRepository.updateClient(existingClient);
             transaction.commit();
-            return updatedClient;
-
+            return ClientMapper.mapClientToResponseDto(updatedClient);
         } catch (ClientNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -159,7 +163,6 @@ public class ClientServiceImpl implements ClientService {
 
             clientRepository.deleteClient(clientId);
             transaction.commit();
-
         } catch (ClientNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -184,7 +187,6 @@ public class ClientServiceImpl implements ClientService {
             boolean result = clientRepository.checkClientIsExist(clientId);
             transaction.commit();
             return result;
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при проверке существования клиента с id={}", clientId, e);
             rollbackTransaction(transaction);
@@ -207,7 +209,6 @@ public class ClientServiceImpl implements ClientService {
             transaction.commit();
 
             clientCsvExporter.exportToCsv(allClients, filePath);
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при экспорте клиентов в CSV", e);
             rollbackTransaction(transaction);

@@ -36,7 +36,6 @@ public abstract class BaseRepositoryDao {
             while (rs.next()) {
                 result.add(mapper.map(rs));
             }
-
         } catch (SQLException e) {
             log.error("Ошибка БД при получении записей: sql={}", sql, e);
             throw new DatabaseException("Ошибка выполнения запроса: " + e.getMessage());
@@ -65,7 +64,6 @@ public abstract class BaseRepositoryDao {
             }
 
             return entity;
-
         } catch (SQLException e) {
             log.error("Ошибка базы данных при сохранении: sql={}, entity={}", sql, entity, e);
             throw new DatabaseException("Ошибка сохранения сущности" + e);
@@ -86,7 +84,6 @@ public abstract class BaseRepositoryDao {
                 }
                 return Optional.empty();
             }
-
         } catch (SQLException e) {
             log.error("Ошибка БД при поиске: sql={}, params={}", sql, params, e);
             throw new DatabaseException("Ошибка выполнения findOne" + e);
@@ -106,7 +103,6 @@ public abstract class BaseRepositoryDao {
             }
 
             return entity;
-
         } catch (SQLException e) {
             log.error("Ошибка БД при обновлении: sql={}, entity={}", sql, entity);
             throw new DatabaseException("Ошибка обновления сущности" + e);
@@ -124,7 +120,6 @@ public abstract class BaseRepositoryDao {
                 log.error("Ошибка БД: обновление не затронуло ни одной строки: sql={}", sql);
                 throw new DatabaseException("Обновление не затронуло ни одной строки");
             }
-
         } catch (SQLException e) {
             log.error("Ошибка БД при обновлении: sql={}", sql);
             throw new DatabaseException("Ошибка update" + e);
@@ -141,7 +136,6 @@ public abstract class BaseRepositoryDao {
             }
 
             ps.executeUpdate();
-
         } catch (SQLException e) {
             log.error("Ошибка БД при удалении: sql={}, params={}", sql, params);
             throw new DatabaseException("Ошибка удаления" + e);
@@ -160,12 +154,9 @@ public abstract class BaseRepositoryDao {
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
-
         } catch (SQLException e) {
             log.error("Ошибка БД при проверке существования: sql={}, params={}", sql, params);
             throw new DatabaseException("Ошибка проверки существования" + e);
         }
     }
-
-
 }

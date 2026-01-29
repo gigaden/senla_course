@@ -23,7 +23,7 @@
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
-        <checkstyle.config.path>${basedir}/config/checkstyle</checkstyle.config.path>
+        <checkstyle.config.path>${maven.multiModuleProjectDirectory}/config/checkstyle</checkstyle.config.path>
         <checkstyle.plugin.version>3.3.1</checkstyle.plugin.version>
     </properties>
 
@@ -80,6 +80,9 @@
 
                     <configuration>
                         <configLocation>${checkstyle.config.path}/checkstyle.xml</configLocation>
+                        <propertyExpansion>
+                            checkstyle.config.path=${checkstyle.config.path}
+                        </propertyExpansion>
                         <consoleOutput>true</consoleOutput>
                         <failsOnError>true</failsOnError>
                         <linkXRef>false</linkXRef>

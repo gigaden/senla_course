@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
  * Создаёт соединение с БД с помощью хибера и выдаёт сессии
  */
 public class HibernateUtil {
+
     private static final Logger log = LoggerFactory.getLogger(HibernateUtil.class);
     private static final SessionFactory sessionFactory;
 
@@ -25,7 +26,6 @@ public class HibernateUtil {
             log.error("Ошибка коннекта к БД через хибер: {}", e.getMessage(), e);
             throw new DatabaseException(DataBaseErrorMessages.HIBER_CONNECTION_ERROR + ": " + e);
         }
-
     }
 
     /**
@@ -39,11 +39,10 @@ public class HibernateUtil {
 
     /**
      * Закрываем фабрику сессий
-     * */
+     */
     public static void shutdown() {
         if (sessionFactory != null && !sessionFactory.isClosed()) {
             sessionFactory.close();
         }
     }
-
 }

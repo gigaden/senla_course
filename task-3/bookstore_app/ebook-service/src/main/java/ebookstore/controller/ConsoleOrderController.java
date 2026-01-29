@@ -2,7 +2,7 @@ package ebookstore.controller;
 
 import di.annotation.Autowired;
 import di.annotation.Component;
-import ebookstore.dto.OrderDetailsDto;
+import ebookstore.dto.order.OrderDetailsDto;
 import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.service.OrderService;

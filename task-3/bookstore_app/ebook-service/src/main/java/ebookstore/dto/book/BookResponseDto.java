@@ -1,4 +1,4 @@
-package ebookstore.dto;
+package ebookstore.dto.book;
 
 import ebookstore.model.enums.BookStatus;
 
@@ -11,5 +11,5 @@ public record BookResponseDto(Long id,
                               LocalDate publicationDate,
                               double price,
                               BookStatus status
-                             ) {
+) {
 }

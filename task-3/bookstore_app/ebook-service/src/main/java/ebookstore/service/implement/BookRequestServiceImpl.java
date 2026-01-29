@@ -2,10 +2,12 @@ package ebookstore.service.implement;
 
 import di.annotation.Autowired;
 import di.annotation.Component;
-import ebookstore.dto.RequestDto;
+import ebookstore.dto.bookrequest.BookRequestDto;
+import ebookstore.dto.bookrequest.RequestDto;
 import ebookstore.exception.DatabaseException;
 import ebookstore.exception.RequestNotFoundException;
 import ebookstore.exception.message.RequestErrorMessages;
+import ebookstore.mapper.RequestMapper;
 import ebookstore.model.Book;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
@@ -51,7 +53,7 @@ public class BookRequestServiceImpl implements BookRequestService {
     private static final Logger log = LoggerFactory.getLogger(BookRequestServiceImpl.class);
 
     @Override
-    public BookRequest createRequest(BookRequest request) {
+    public BookRequestDto createRequest(BookRequest request) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
@@ -70,8 +72,7 @@ public class BookRequestServiceImpl implements BookRequestService {
             BookRequest savedRequest = requestRepository.saveRequest(request);
 
             transaction.commit();
-            return savedRequest;
-
+            return RequestMapper.mapRequestToDto(savedRequest);
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при создании запроса: {}", request, e);
             rollbackTransaction(transaction);
@@ -84,7 +85,7 @@ public class BookRequestServiceImpl implements BookRequestService {
     }
 
     @Override
-    public BookRequest update(BookRequest request) {
+    public BookRequestDto update(BookRequest request) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
@@ -101,8 +102,7 @@ public class BookRequestServiceImpl implements BookRequestService {
             BookRequest updatedRequest = requestRepository.updateRequest(existingRequest);
 
             transaction.commit();
-            return updatedRequest;
-
+            return RequestMapper.mapRequestToDto(updatedRequest);
         } catch (RequestNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -118,7 +118,7 @@ public class BookRequestServiceImpl implements BookRequestService {
     }
 
     @Override
-    public BookRequest getRequestById(long requestId) {
+    public BookRequestDto getRequestById(long requestId) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
@@ -132,8 +132,7 @@ public class BookRequestServiceImpl implements BookRequestService {
                     });
 
             transaction.commit();
-            return request;
-
+            return RequestMapper.mapRequestToDto(request);
         } catch (RequestNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -158,7 +157,6 @@ public class BookRequestServiceImpl implements BookRequestService {
             requestRepository.changeRequestStatus(requestId, status);
             transaction.commit();
             log.info("Статус запроса id={} изменён на {}", requestId, status);
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при изменении статуса запроса с id={}", requestId, e);
             rollbackTransaction(transaction);
@@ -183,7 +181,6 @@ public class BookRequestServiceImpl implements BookRequestService {
             return allRequests.stream()
                     .anyMatch(r -> r.getBookId() == bookId &&
                                    r.getRequestStatus() == BookRequestStatus.OPENED);
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при проверке открытых запросов для книги id={}", bookId, e);
             rollbackTransaction(transaction);
@@ -213,7 +210,6 @@ public class BookRequestServiceImpl implements BookRequestService {
 
             transaction.commit();
             log.info("Закрыты все открытые запросы на книгу id={}", bookId);
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при закрытии запросов для книги id={}", bookId, e);
             rollbackTransaction(transaction);
@@ -228,7 +224,10 @@ public class BookRequestServiceImpl implements BookRequestService {
     /**
      * работает через ж.. надо исправить, падает в ошибку, т.к. makeRequestDto создаётся ещё одна транзакция
      * как вариант получать здесь в транзакции все книги..короче надо не забыть поправить
-     * */
+     * <p>
+     * Вынес метод сборки дто за транзакцию, теперь дто мапится за две транзакции
+     * Вопрос - нужно ли это вообще?
+     */
     @Override
     public Collection<RequestDto> getSortedRequest(Comparator<RequestDto> comparator) {
         Session session = HibernateUtil.getCurrentSession();
@@ -238,13 +237,12 @@ public class BookRequestServiceImpl implements BookRequestService {
             transaction = session.beginTransaction();
 
             List<BookRequest> requests = new ArrayList<>(requestRepository.getAllRequests());
-            List<RequestDto> dtos = makeRequestDto(requests);
 
             transaction.commit();
+            List<RequestDto> dtos = makeRequestDto(requests);
 
             dtos.sort(comparator);
             return dtos;
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при получении запросов", e);
             rollbackTransaction(transaction);
@@ -266,7 +264,6 @@ public class BookRequestServiceImpl implements BookRequestService {
             boolean result = requestRepository.checkRequestIsExist(requestId);
             transaction.commit();
             return result;
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при проверке существования запроса с id={}", requestId, e);
             rollbackTransaction(transaction);
@@ -289,7 +286,6 @@ public class BookRequestServiceImpl implements BookRequestService {
             transaction.commit();
 
             requestCsvExporter.exportToCsv(requests, filePath);
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при экспорте запросов в CSV", e);
             rollbackTransaction(transaction);

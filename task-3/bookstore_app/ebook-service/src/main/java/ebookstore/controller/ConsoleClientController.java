@@ -2,6 +2,7 @@ package ebookstore.controller;
 
 import di.annotation.Autowired;
 import di.annotation.Component;
+import ebookstore.dto.client.ClientResponseDto;
 import ebookstore.model.Client;
 import ebookstore.service.ClientService;
 import ebookstore.service.csv.reader.ClientCsvReader;
@@ -27,25 +28,29 @@ public class ConsoleClientController {
 
     public void saveClient(Client client) {
         log.info("Сохраняем клиента");
-        clientService.saveClient(client);
+        ClientResponseDto clientResponseDto = clientService.saveClient(client);
+        System.out.println(clientResponseDto);
         log.info("Клиент успешно сохранён");
     }
 
     public void getAllClients() {
         log.info("Получаем всех клиентов");
-        Collection<Client> clients = clientService.getAllClients();
+        Collection<ClientResponseDto> clients = clientService.getAllClients();
+        System.out.println(clients);
         log.info("Получено клиентов: {}", clients.size());
     }
 
     public void getClient(long clientId) {
         log.info("Получаем клиента с id={}", clientId);
-        clientService.getClientById(clientId);
+        ClientResponseDto clientDtoById = clientService.getClientDtoById(clientId);
+        System.out.println(clientDtoById);
         log.info("Клиент получен с id={}", clientId);
     }
 
     public void updateClient(Client client) {
         log.info("Обновляем клиента с id={}", client.getId());
-        clientService.updateClient(client);
+        ClientResponseDto clientResponseDto = clientService.updateClient(client);
+        System.out.println(clientResponseDto);
         log.info("Клиент обновлён с id={}", client.getId());
     }
 

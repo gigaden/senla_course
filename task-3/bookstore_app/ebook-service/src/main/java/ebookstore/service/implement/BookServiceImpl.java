@@ -3,10 +3,12 @@ package ebookstore.service.implement;
 import config.annotation.ConfigProperty;
 import di.annotation.Autowired;
 import di.annotation.Component;
-import ebookstore.dto.BookDescriptionDto;
+import ebookstore.dto.book.BookDescriptionDto;
+import ebookstore.dto.book.BookResponseDto;
 import ebookstore.exception.BookNotFoundException;
 import ebookstore.exception.DatabaseException;
 import ebookstore.exception.message.BookErrorMessages;
+import ebookstore.mapper.BookMapper;
 import ebookstore.model.Book;
 import ebookstore.model.Order;
 import ebookstore.model.enums.BookStatus;
@@ -59,7 +61,7 @@ public class BookServiceImpl implements BookService {
     private static final Logger log = LoggerFactory.getLogger(BookServiceImpl.class);
 
     @Override
-    public Book saveBook(Book book) {
+    public BookResponseDto saveBook(Book book) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
@@ -80,8 +82,7 @@ public class BookServiceImpl implements BookService {
             }
 
             transaction.commit();
-            return newBook;
-
+            return BookMapper.mapBookToResponseDto(newBook);
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при сохранении книги: {}", book, e);
             rollbackTransaction(transaction);
@@ -104,7 +105,6 @@ public class BookServiceImpl implements BookService {
             transaction.commit();
 
             return List.copyOf(books);
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при получении всех книг", e);
             rollbackTransaction(transaction);
@@ -117,10 +117,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Collection<Book> getAllBooks(Comparator<Book> comparator) {
+    public Collection<BookResponseDto> getAllBooks(Comparator<Book> comparator) {
         List<Book> books = new ArrayList<>(getAllBooks());
         books.sort(comparator);
-        return List.copyOf(books);
+        return books.stream().map(BookMapper::mapBookToResponseDto).toList();
     }
 
     @Override
@@ -139,7 +139,6 @@ public class BookServiceImpl implements BookService {
 
             transaction.commit();
             return book;
-
         } catch (BookNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -155,7 +154,12 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Book updateBook(Book book) {
+    public BookResponseDto getBookDtoById(long bookId) {
+        return BookMapper.mapBookToResponseDto(getBookById(bookId));
+    }
+
+    @Override
+    public BookResponseDto updateBook(Book book) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
@@ -163,8 +167,7 @@ public class BookServiceImpl implements BookService {
             transaction = session.beginTransaction();
             Book updatedBook = bookRepository.updateBook(book);
             transaction.commit();
-            return updatedBook;
-
+            return BookMapper.mapBookToResponseDto(updatedBook);
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при обновлении книги: {}", book, e);
             rollbackTransaction(transaction);
@@ -185,7 +188,6 @@ public class BookServiceImpl implements BookService {
             transaction = session.beginTransaction();
             bookRepository.deleteBook(bookId);
             transaction.commit();
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при удалении книги с id={}", bookId, e);
             rollbackTransaction(transaction);
@@ -216,7 +218,6 @@ public class BookServiceImpl implements BookService {
 
             transaction.commit();
             log.info("Статус книги изменён на ABSENT, id={}", bookId);
-
         } catch (BookNotFoundException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -232,7 +233,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Collection<Book> getStaleBooks(Comparator<Book> comparator) {
+    public Collection<BookResponseDto> getStaleBooks(Comparator<Book> comparator) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
@@ -270,8 +271,9 @@ public class BookServiceImpl implements BookService {
 
             transaction.commit();
             staleBooks.sort(comparator);
-            return List.copyOf(staleBooks);
-
+            return staleBooks.stream()
+                    .map(BookMapper::mapBookToResponseDto)
+                    .toList();
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при получении залежавшихся книг", e);
             rollbackTransaction(transaction);
@@ -286,7 +288,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public BookDescriptionDto getBookDescription(long bookId) {
         Book book = getBookById(bookId);
-        return BookDescriptionDto.fromBook(book);
+        return BookMapper.mapToBookDescriptionDto(book);
     }
 
     @Override
@@ -299,7 +301,6 @@ public class BookServiceImpl implements BookService {
             boolean result = bookRepository.checkBookIsExist(bookId);
             transaction.commit();
             return result;
-
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при проверке существования книги с id={}", bookId, e);
             rollbackTransaction(transaction);

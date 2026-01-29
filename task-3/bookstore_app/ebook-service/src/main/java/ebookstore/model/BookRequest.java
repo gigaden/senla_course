@@ -17,6 +17,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "requests")
 public class BookRequest implements Serializable {
+
     @Serial
     private static final long serialVersionUID = 1L;
 

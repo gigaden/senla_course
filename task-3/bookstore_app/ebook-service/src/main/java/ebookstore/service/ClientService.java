@@ -1,22 +1,25 @@
 package ebookstore.service;
 
+import ebookstore.dto.client.ClientResponseDto;
 import ebookstore.model.Client;
 
 import java.util.Collection;
 
 public interface ClientService {
 
-    Client saveClient(Client client);
+    ClientResponseDto saveClient(Client client);
 
-    Collection<Client> getAllClients();
+    Collection<ClientResponseDto> getAllClients();
 
     Client getClientById(long clientId);
 
-    Client updateClient(Client client);
+    ClientResponseDto getClientDtoById(long clientId);
+
+    ClientResponseDto updateClient(Client client);
 
     void deleteClientById(long clientId);
 
     boolean checkClientIsExist(long clientId);
 
-    public void exportClientsToCsv(String filePath);
+    void exportClientsToCsv(String filePath);
 }
