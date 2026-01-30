@@ -31,7 +31,6 @@ public class ClientCsvExporter implements CsvExporter<Client> {
 
             System.out.println("Экспорт клиентов завершен. Файл: " + filePath);
             System.out.println("Экспортировано клиентов: " + clients.size());
-
         } catch (IOException e) {
             System.out.println("Ошибка при экспорте клиентов в CSV: " + e.getMessage());
             throw new RuntimeException("Ошибка экспорта", e);

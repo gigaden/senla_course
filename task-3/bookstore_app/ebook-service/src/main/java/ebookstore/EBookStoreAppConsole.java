@@ -14,10 +14,10 @@ import ebookstore.repository.BookRepository;
 import ebookstore.repository.BookRequestRepository;
 import ebookstore.repository.ClientRepository;
 import ebookstore.repository.OrderRepository;
-import ebookstore.repository.implement.dao.BookRepositoryDao;
-import ebookstore.repository.implement.dao.BookRequestRepositoryDao;
-import ebookstore.repository.implement.dao.ClientRepositoryDao;
-import ebookstore.repository.implement.dao.OrderRepositoryDao;
+import ebookstore.repository.implement.hiber.BookRepositoryHiber;
+import ebookstore.repository.implement.hiber.BookRequestRepositoryHiber;
+import ebookstore.repository.implement.hiber.ClientRepositoryHiber;
+import ebookstore.repository.implement.hiber.OrderRepositoryHiber;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.BookService;
 import ebookstore.service.ClientService;
@@ -54,6 +54,13 @@ public class EBookStoreAppConsole {
     public void start() {
         consoleMenu.start();
     }
+    /*
+     * ТуДу:
+     * - только сейчас заметил, что нихрена ничего не валидирую нормально) - надо исправить
+     * - сделать дто на входящие объекты и валидацию для них
+     * - задокументировать больше
+     * - переделать логику обработки и выброса исключений
+     * */
 
     public static void main(String[] args) {
         try {
@@ -65,20 +72,20 @@ public class EBookStoreAppConsole {
 
             container.registerBean(
                     BookRepository.class,
-                    new BookRepositoryDao(connectionManager)
+                    new BookRepositoryHiber()
             );
 
             container.registerBean(
                     ClientRepository.class,
-                    new ClientRepositoryDao(connectionManager));
+                    new ClientRepositoryHiber());
 
             container.registerBean(
                     OrderRepository.class,
-                    new OrderRepositoryDao(connectionManager));
+                    new OrderRepositoryHiber());
 
             container.registerBean(
                     BookRequestRepository.class,
-                    new BookRequestRepositoryDao(connectionManager));
+                    new BookRequestRepositoryHiber());
 
             // Регистрируем CSV экспортеры
             container.registerBean(BookCsvExporter.class, new BookCsvExporter());
@@ -120,7 +127,6 @@ public class EBookStoreAppConsole {
             EBookStoreAppConsole ebookStoreApp = container.getBean(EBookStoreAppConsole.class);
 
             ebookStoreApp.start();
-
         } catch (Exception e) {
             System.err.println("Ошибка запуска приложения: " + e.getMessage());
             e.printStackTrace();

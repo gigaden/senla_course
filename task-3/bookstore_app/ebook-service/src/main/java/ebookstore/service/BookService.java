@@ -1,6 +1,7 @@
 package ebookstore.service;
 
-import ebookstore.dto.BookDescriptionDto;
+import ebookstore.dto.book.BookDescriptionDto;
+import ebookstore.dto.book.BookResponseDto;
 import ebookstore.model.Book;
 
 import java.util.Collection;
@@ -8,23 +9,25 @@ import java.util.Comparator;
 
 public interface BookService {
 
-    Book saveBook(Book book);
+    BookResponseDto saveBook(Book book);
 
     Collection<Book> getAllBooks();
 
-    Collection<Book> getAllBooks(Comparator<Book> comparator);
+    Collection<BookResponseDto> getAllBooks(Comparator<Book> comparator);
 
     Book getBookById(long bookId);
 
-    Book updateBook(Book book);
+    BookResponseDto getBookDtoById(long bookId);
+
+    BookResponseDto updateBook(Book book);
 
     void deleteBookById(long bookId);
 
     void makeBookAbsent(long bookId);
 
-    public BookDescriptionDto getBookDescription(long bookId);
+    BookDescriptionDto getBookDescription(long bookId);
 
-    Collection<Book> getStaleBooks(Comparator<Book> comparator);
+    Collection<BookResponseDto> getStaleBooks(Comparator<Book> comparator);
 
     boolean checkBookIsExist(long bookId);
 

@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Component
 public class InMemoryClientRepository implements ClientRepository, Serializable {
+
     @Serial
     private static final long serialVersionUID = 1L;
 

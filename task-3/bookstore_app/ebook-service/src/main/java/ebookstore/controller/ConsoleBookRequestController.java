@@ -2,7 +2,8 @@ package ebookstore.controller;
 
 import di.annotation.Autowired;
 import di.annotation.Component;
-import ebookstore.dto.BookRequestDto;
+import ebookstore.dto.bookrequest.BookRequestDto;
+import ebookstore.dto.bookrequest.RequestDto;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.service.BookRequestService;
@@ -14,6 +15,9 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Контроллер обрабатывает обращения к запросам на книги
+ */
 @Component
 public class ConsoleBookRequestController {
 
@@ -30,7 +34,8 @@ public class ConsoleBookRequestController {
 
     public void createRequest(BookRequest request) {
         log.info("Создаём запрос на книгу");
-        requestService.createRequest(request);
+        BookRequestDto response = requestService.createRequest(request);
+        System.out.println(response);
         log.info("Запрос успешно создан");
     }
 
@@ -42,22 +47,25 @@ public class ConsoleBookRequestController {
 
     public void getRequest(long requestId) {
         log.info("Получаем запрос с id={}", requestId);
-        requestService.getRequestById(requestId);
+        BookRequestDto response = requestService.getRequestById(requestId);
+        System.out.println(response);
         log.info("Запрос получен с id={}", requestId);
     }
 
     public void getAllBookRequestByCountOfRequest() {
         log.info("Получаем запросы, отсортированные по количеству запросов");
-        Collection<BookRequestDto> requests = requestService
-                .getSortedRequest(Comparator.comparing(BookRequestDto::getRequestCount).reversed());
+        Collection<RequestDto> requests = requestService
+                .getSortedRequest(Comparator.comparing(RequestDto::requestCount).reversed());
+        System.out.println(requests);
         log.info("Получено запросов: {}", requests.size());
     }
 
     public void getAllBookRequestByTitleOfBookByAlphabet() {
         log.info("Получаем запросы, отсортированные по названию книги");
-        Collection<BookRequestDto> requests = requestService
-                .getSortedRequest(Comparator.comparing(BookRequestDto::getBookTitle));
-        log.info("Получено запросов: {}", requests.size());
+        Collection<RequestDto> requests = requestService
+                .getSortedRequest(Comparator.comparing(RequestDto::bookTitle));
+        System.out.println(requests);
+        log.info("Получено сортированных запросов: {}", requests.size());
     }
 
     public void importRequestsFromCsv(String filePath) {

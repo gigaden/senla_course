@@ -32,7 +32,6 @@ public class BookCsvExporter implements CsvExporter<Book> {
 
             System.out.println("Экспорт книг завершен. Файл: " + filePath);
             System.out.println("Экспортировано книг: " + books.size());
-
         } catch (IOException e) {
             System.out.println("Ошибка при экспорте книг в CSV: " + e.getMessage());
             throw new RuntimeException("Ошибка экспорта", e);

@@ -154,7 +154,6 @@ public class MenuController {
             Book book = new Book(title, author, description, date, price);
             bookController.saveBook(book);
             System.out.println("Книга добавлена");
-
         } catch (Exception e) {
             System.out.println("Ошибка ввода данных");
         }
@@ -203,7 +202,6 @@ public class MenuController {
             Order order = new Order(book, client);
             orderController.saveOrder(order);
             System.out.println("Заказ успешно создан!");
-
         } catch (BookNotFoundException e) {
             System.out.println("Возникла ошибка при поиске книги: " + e.getMessage());
         } catch (ClientNotFoundException e) {
@@ -248,7 +246,6 @@ public class MenuController {
 
             orderController.changeOrderStatus(orderId, status);
             System.out.println("Статус заказа успешно изменен!");
-
         } catch (OrderNotFoundException e) {
             System.out.println("Ошибка поиска заказа: " + e.getMessage());
         } catch (IllegalArgumentException e) {
@@ -282,7 +279,6 @@ public class MenuController {
             BookRequest request = new BookRequest(bookId, clientId);
             requestController.createRequest(request);
             System.out.println("Запрос на книгу успешно создан!");
-
         } catch (BookNotFoundException e) {
             System.out.println("Возникла ошибка при поиске книги: " + e.getMessage());
         } catch (ClientNotFoundException e) {

@@ -42,7 +42,6 @@ public class BookRequestCsvReader {
                         .collect(Collectors.toList());
                 importRequests.add(lineData);
             }
-
         } catch (IOException e) {
             System.out.println("Ошибка чтения файла: " + e.getMessage());
         }
@@ -81,7 +80,6 @@ public class BookRequestCsvReader {
                     System.out.println("Добавлен запрос: " + requestId);
                 }
                 successCount++;
-
             } catch (Exception e) {
                 System.out.println("Ошибка при обработке строки: " + requestArr + " - " + e.getMessage());
                 errorCount++;
