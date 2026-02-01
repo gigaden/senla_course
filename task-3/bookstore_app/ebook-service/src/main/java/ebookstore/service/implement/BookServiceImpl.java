@@ -1,8 +1,6 @@
 package ebookstore.service.implement;
 
-import config.annotation.ConfigProperty;
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.book.BookCreateDto;
 import ebookstore.dto.book.BookDescriptionDto;
 import ebookstore.dto.book.BookResponseDto;
 import ebookstore.exception.BookNotFoundException;
@@ -23,6 +21,10 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -35,43 +37,43 @@ import java.util.List;
  * Управляет бизнес-логикой связанной с книгами, включая создание,
  * обновление, удаление и поиск книг.
  */
-@Component
+@Service
+@Validated
 public class BookServiceImpl implements BookService {
 
-    @ConfigProperty(configFileName = "application.properties", propertyName = "month_quantity", type = Long.class)
+    @Value("${month_quantity}")
     private Long monthQuantity;
-
     private static final long DEFAULT_MONTH_QUANTITY = 6L;
-
-    @ConfigProperty(configFileName = "application.properties", propertyName = "mark_request_completed", type = Boolean.class)
+    @Value("${mark_request_completed}")
     private Boolean markRequestCompleted;
 
-    @Autowired
-    private BookRepository bookRepository;
-
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private BookCsvExporter bookCsvExporter;
-
-    @Autowired
-    private BookRequestService requestService;
+    private final BookRepository bookRepository;
+    private final OrderRepository orderRepository;
+    private final BookCsvExporter bookCsvExporter;
+    private final BookRequestService requestService;
 
     private static final Logger log = LoggerFactory.getLogger(BookServiceImpl.class);
 
+    public BookServiceImpl(BookRepository bookRepository,
+                           OrderRepository orderRepository,
+                           BookCsvExporter bookCsvExporter,
+                           @Lazy BookRequestService requestService) {
+        this.bookRepository = bookRepository;
+        this.orderRepository = orderRepository;
+        this.bookCsvExporter = bookCsvExporter;
+        this.requestService = requestService;
+    }
+
     @Override
-    public BookResponseDto saveBook(Book book) {
+    public BookResponseDto saveBook(BookCreateDto bookDto) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
             transaction = session.beginTransaction();
-
-            if (book.getId() == 0) {
-                book.setStatus(BookStatus.AVAILABLE);
-                log.debug("Установлен статус AVAILABLE для новой книги: {}", book.getTitle());
-            }
+            Book book = BookMapper.mapCreateDtoToBook(bookDto);
+            book.setStatus(BookStatus.AVAILABLE);
+            log.debug("Установлен статус AVAILABLE для новой книги: {}", book.getTitle());
 
             Book newBook = bookRepository.saveBook(book);
 
@@ -84,11 +86,11 @@ public class BookServiceImpl implements BookService {
             transaction.commit();
             return BookMapper.mapBookToResponseDto(newBook);
         } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при сохранении книги: {}", book, e);
+            log.error("Ошибка базы данных при сохранении книги: {}", bookDto, e);
             rollbackTransaction(transaction);
             throw e;
         } catch (Exception e) {
-            log.error("Неожиданная ошибка при сохранении книги: {}", book, e);
+            log.error("Неожиданная ошибка при сохранении книги: {}", bookDto, e);
             rollbackTransaction(transaction);
             throw new RuntimeException("Ошибка сохранения книги", e);
         }
@@ -125,30 +127,19 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getBookById(long bookId) {
-        Session session = HibernateUtil.getCurrentSession();
-        Transaction transaction = null;
-
         try {
-            transaction = session.beginTransaction();
-
-            Book book = bookRepository.getBook(bookId)
+            return bookRepository.getBook(bookId)
                     .orElseThrow(() -> {
                         log.error("Книга с id={} не найдена", bookId);
                         return new BookNotFoundException(BookErrorMessages.FIND_ERROR);
                     });
-
-            transaction.commit();
-            return book;
         } catch (BookNotFoundException e) {
-            rollbackTransaction(transaction);
             throw e;
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при получении книги с id={}", bookId, e);
-            rollbackTransaction(transaction);
             throw e;
         } catch (Exception e) {
             log.error("Неожиданная ошибка при получении книги с id={}", bookId, e);
-            rollbackTransaction(transaction);
             throw new RuntimeException("Ошибка получения книги", e);
         }
     }
@@ -287,8 +278,30 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDescriptionDto getBookDescription(long bookId) {
-        Book book = getBookById(bookId);
-        return BookMapper.mapToBookDescriptionDto(book);
+        Session session = HibernateUtil.getCurrentSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+
+            Book book = getBookById(bookId);
+
+            transaction.commit();
+            log.info("Получено описание книги, id={}", bookId);
+
+            return BookMapper.mapToBookDescriptionDto(book);
+        } catch (BookNotFoundException e) {
+            rollbackTransaction(transaction);
+            throw e;
+        } catch (DatabaseException e) {
+            log.error("Ошибка базы данных при получении описания книги с id={}", bookId, e);
+            rollbackTransaction(transaction);
+            throw e;
+        } catch (Exception e) {
+            log.error("Неожиданная ошибка при получении описания книги с id={}", bookId, e);
+            rollbackTransaction(transaction);
+            throw new RuntimeException("Ошибка получения описания книги", e);
+        }
     }
 
     @Override

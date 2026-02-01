@@ -6,10 +6,12 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.util.List;
 
+@Repository
 public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     private final Class<T> type;

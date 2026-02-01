@@ -1,7 +1,6 @@
 package ebookstore.service.implement;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.dto.client.ClientResponseDto;
 import ebookstore.exception.ClientNotFoundException;
 import ebookstore.exception.DatabaseException;
@@ -16,6 +15,8 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Collection;
 
@@ -24,33 +25,37 @@ import java.util.Collection;
  * Управляет бизнес-логикой связанной с клиентами, включая создание,
  * обновление, удаление и поиск клиентов.
  */
-@Component
+@Service
+@Validated
 public class ClientServiceImpl implements ClientService {
 
-    @Autowired
-    private ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
+    private final ClientCsvExporter clientCsvExporter;
 
-    @Autowired
-    private ClientCsvExporter clientCsvExporter;
+    public ClientServiceImpl(ClientRepository clientRepository,
+                             ClientCsvExporter clientCsvExporter) {
+        this.clientRepository = clientRepository;
+        this.clientCsvExporter = clientCsvExporter;
+    }
 
     private static final Logger log = LoggerFactory.getLogger(ClientServiceImpl.class);
 
     @Override
-    public ClientResponseDto saveClient(Client client) {
+    public ClientResponseDto saveClient(ClientCreateDto dto) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
             transaction = session.beginTransaction();
-            Client savedClient = clientRepository.saveClient(client);
+            Client savedClient = clientRepository.saveClient(ClientMapper.mapDtoCreateToClient(dto));
             transaction.commit();
             return ClientMapper.mapClientToResponseDto(savedClient);
         } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при сохранении клиента: {}", client, e);
+            log.error("Ошибка базы данных при сохранении клиента: {}", dto, e);
             rollbackTransaction(transaction);
             throw e;
         } catch (Exception e) {
-            log.error("Неожиданная ошибка при сохранении клиента: {}", client, e);
+            log.error("Неожиданная ошибка при сохранении клиента: {}", dto, e);
             rollbackTransaction(transaction);
             throw new RuntimeException("Ошибка сохранения клиента", e);
         }
@@ -179,21 +184,15 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public boolean checkClientIsExist(long clientId) {
-        Session session = HibernateUtil.getCurrentSession();
-        Transaction transaction = null;
 
         try {
-            transaction = session.beginTransaction();
             boolean result = clientRepository.checkClientIsExist(clientId);
-            transaction.commit();
             return result;
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при проверке существования клиента с id={}", clientId, e);
-            rollbackTransaction(transaction);
             throw e;
         } catch (Exception e) {
             log.error("Неожиданная ошибка при проверке существования клиента с id={}", clientId, e);
-            rollbackTransaction(transaction);
             throw new RuntimeException("Ошибка проверки существования клиента", e);
         }
     }

@@ -5,10 +5,14 @@ import ebookstore.model.enums.OrderStatus;
 import ebookstore.repository.OrderRepository;
 import ebookstore.util.HibernateUtil;
 import org.hibernate.Session;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.Optional;
 
+@Repository
+@Primary
 public class OrderRepositoryHiber extends BaseRepositoryHiber<Order, Long> implements OrderRepository {
 
     public OrderRepositoryHiber() {

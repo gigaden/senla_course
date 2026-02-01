@@ -1,6 +1,6 @@
 package ebookstore.util;
 
-import di.annotation.Component;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileInputStream;

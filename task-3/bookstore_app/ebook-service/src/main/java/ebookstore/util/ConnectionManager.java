@@ -1,10 +1,9 @@
 package ebookstore.util;
 
-import config.annotation.ConfigProperty;
-import di.annotation.Component;
-import di.annotation.PostConstruct;
 import ebookstore.exception.DatabaseException;
 import ebookstore.exception.message.DataBaseErrorMessages;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
@@ -17,18 +16,18 @@ import java.util.concurrent.BlockingQueue;
 public class ConnectionManager {
 
 
-    @ConfigProperty(configFileName = "application.properties", propertyName = "jdbc.url", type = String.class)
+    @Value("${jdbc.url}")
     private String URL;
-    @ConfigProperty(configFileName = "application.properties", propertyName = "jdbc.user", type = String.class)
+    @Value("${jdbc.user}")
     private String USER;
-    @ConfigProperty(configFileName = "application.properties", propertyName = "jdbc.password", type = String.class)
+    @Value("${jdbc.password}")
     private String PASSWORD;
-    @ConfigProperty(configFileName = "application.properties", propertyName = "db.pool.size", type = Integer.class)
+    @Value("${db.pool.size}")
     private Integer POOL_SIZE;
     private final int DEFAULT_POOL_SIZE = 10;
     private BlockingQueue<Connection> pool;
 
-    @PostConstruct
+    //@PostConstruct
     private void init() {
         initConnectionPool();
     }

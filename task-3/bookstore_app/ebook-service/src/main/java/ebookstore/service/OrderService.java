@@ -1,8 +1,10 @@
 package ebookstore.service;
 
+import ebookstore.dto.order.OrderCreateDto;
 import ebookstore.dto.order.OrderDetailsDto;
 import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
+import jakarta.validation.Valid;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -10,7 +12,7 @@ import java.util.Comparator;
 
 public interface OrderService {
 
-    Order createOrder(Order order);
+    Order createOrder(@Valid OrderCreateDto dto);
 
     Order getOrderById(long orderId);
 

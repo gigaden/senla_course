@@ -2,10 +2,14 @@ package ebookstore.repository.implement.hiber;
 
 import ebookstore.model.Book;
 import ebookstore.repository.BookRepository;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.Optional;
 
+@Repository
+@Primary
 public class BookRepositoryHiber extends BaseRepositoryHiber<Book, Long> implements BookRepository {
 
     public BookRepositoryHiber() {

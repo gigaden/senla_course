@@ -1,5 +1,6 @@
 package ebookstore.mapper;
 
+import ebookstore.dto.bookrequest.BookRequestCreateDto;
 import ebookstore.dto.bookrequest.BookRequestDto;
 import ebookstore.model.BookRequest;
 
@@ -20,5 +21,17 @@ public final class RequestMapper {
                 bookRequest.getClientId(),
                 bookRequest.getRequestStatus(),
                 bookRequest.getCreatedOn());
+    }
+
+    /**
+     * Мапит из дто в запросы
+     *
+     * @param dto - дто запроса
+     * @return - болванка запроса
+     */
+    public static BookRequest mapDtoToBookRequest(BookRequestCreateDto dto) {
+        return new BookRequest(
+                dto.bookId(),
+                dto.clientId());
     }
 }

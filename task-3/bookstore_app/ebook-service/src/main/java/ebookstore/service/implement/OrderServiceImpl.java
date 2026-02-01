@@ -1,13 +1,13 @@
 package ebookstore.service.implement;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.bookrequest.BookRequestCreateDto;
+import ebookstore.dto.order.OrderCreateDto;
 import ebookstore.dto.order.OrderDetailsDto;
 import ebookstore.exception.DatabaseException;
 import ebookstore.exception.OrderNotFoundException;
 import ebookstore.exception.message.OrderErrorMessages;
+import ebookstore.mapper.OrderMapper;
 import ebookstore.model.Book;
-import ebookstore.model.BookRequest;
 import ebookstore.model.Client;
 import ebookstore.model.Order;
 import ebookstore.model.enums.BookStatus;
@@ -22,6 +22,8 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -29,43 +31,47 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
-@Component
+@Service
+@Validated
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private ClientService clientService;
-
-    @Autowired
-    private BookRequestService requestService;
-
-    @Autowired
-    private OrderCsvExporter orderCsvExporter;
+    private final OrderRepository orderRepository;
+    private final ClientService clientService;
+    private final BookRequestService requestService;
+    private final OrderCsvExporter orderCsvExporter;
 
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
+    public OrderServiceImpl(OrderRepository orderRepository,
+                            ClientService clientService,
+                            BookRequestService requestService,
+                            OrderCsvExporter orderCsvExporter) {
+        this.orderRepository = orderRepository;
+        this.clientService = clientService;
+        this.requestService = requestService;
+        this.orderCsvExporter = orderCsvExporter;
+    }
+
     @Override
-    public Order createOrder(Order order) {
+    public Order createOrder(OrderCreateDto dto) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
             transaction = session.beginTransaction();
 
-            clientService.checkClientIsExist(order.getClient().getId());
-            Order newOrder = orderRepository.createOrder(order);
+            clientService.checkClientIsExist(dto.client().getId());
+            Order newOrder = orderRepository.createOrder(OrderMapper.mapOrderDtoToOrder(dto));
             createRequestIfBookIsAbsent(newOrder);
 
             transaction.commit();
             return newOrder;
         } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при сохранении заказа: {}", order, e);
+            log.error("Ошибка базы данных при сохранении заказа: {}", dto, e);
             rollbackTransaction(transaction);
             throw e;
         } catch (Exception e) {
-            log.error("Неожиданная ошибка при сохранении заказа: {}", order, e);
+            log.error("Неожиданная ошибка при сохранении заказа: {}", dto, e);
             rollbackTransaction(transaction);
             throw new RuntimeException("Ошибка сохранения заказа", e);
         }
@@ -386,7 +392,7 @@ public class OrderServiceImpl implements OrderService {
     private void createRequestIfBookIsAbsent(Order order) {
         if (order.getBook().getStatus() == BookStatus.ABSENT) {
             requestService.createRequest(
-                    new BookRequest(order.getBook().getId(), order.getClient().getId())
+                    new BookRequestCreateDto(order.getBook().getId(), order.getClient().getId())
             );
             log.info("Создан запрос на отсутствующую книгу id={}", order.getBook().getId());
         }

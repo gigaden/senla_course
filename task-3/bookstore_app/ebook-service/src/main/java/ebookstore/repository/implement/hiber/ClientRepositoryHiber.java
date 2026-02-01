@@ -1,14 +1,16 @@
 package ebookstore.repository.implement.hiber;
 
-import di.annotation.Component;
 import ebookstore.model.Client;
 import ebookstore.repository.ClientRepository;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
+@Primary
 public class ClientRepositoryHiber extends BaseRepositoryHiber<Client, Long> implements ClientRepository {
 
     public ClientRepositoryHiber() {

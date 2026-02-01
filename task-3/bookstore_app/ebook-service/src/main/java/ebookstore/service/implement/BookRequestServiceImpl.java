@@ -1,7 +1,6 @@
 package ebookstore.service.implement;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.bookrequest.BookRequestCreateDto;
 import ebookstore.dto.bookrequest.BookRequestDto;
 import ebookstore.dto.bookrequest.RequestDto;
 import ebookstore.exception.DatabaseException;
@@ -22,6 +21,9 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,50 +37,54 @@ import java.util.Map;
  * Управляет бизнес-логикой связанной с запросами, включая создание,
  * обновление, удаление и поиск запросов.
  */
-@Component
+@Service
+@Validated
 public class BookRequestServiceImpl implements BookRequestService {
 
-    @Autowired
-    private BookRequestRepository requestRepository;
-
-    @Autowired
-    private BookService bookService;
-
-    @Autowired
-    private ClientService clientService;
-
-    @Autowired
-    private BookRequestCsvExporter requestCsvExporter;
-
+    private final BookRequestRepository requestRepository;
+    private final BookService bookService;
+    private final ClientService clientService;
+    private final BookRequestCsvExporter requestCsvExporter;
     private static final Logger log = LoggerFactory.getLogger(BookRequestServiceImpl.class);
 
+    public BookRequestServiceImpl(BookRequestRepository requestRepository,
+                                  BookService bookService,
+                                  ClientService clientService,
+                                  @Lazy BookRequestCsvExporter requestCsvExporter) {
+        this.requestRepository = requestRepository;
+        this.bookService = bookService;
+        this.clientService = clientService;
+        this.requestCsvExporter = requestCsvExporter;
+    }
+
     @Override
-    public BookRequestDto createRequest(BookRequest request) {
+    public BookRequestDto createRequest(BookRequestCreateDto dto) {
         Session session = HibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
             transaction = session.beginTransaction();
 
-            clientService.checkClientIsExist(request.getClientId());
-            Book book = bookService.getBookById(request.getBookId());
+            clientService.checkClientIsExist(dto.clientId());
+            Book book = bookService.getBookById(dto.bookId());
 
             if (book.getStatus() == BookStatus.AVAILABLE) {
                 log.error("Попытка создать запрос на доступную книгу id={}", book.getId());
                 throw new RuntimeException("Книга доступна, запрос не нужен");
             }
 
+            BookRequest request = RequestMapper.mapDtoToBookRequest(dto);
             request.setRequestStatus(BookRequestStatus.OPENED);
             BookRequest savedRequest = requestRepository.saveRequest(request);
 
             transaction.commit();
             return RequestMapper.mapRequestToDto(savedRequest);
         } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при создании запроса: {}", request, e);
+            log.error("Ошибка базы данных при создании запроса: {}", dto, e);
             rollbackTransaction(transaction);
             throw e;
         } catch (Exception e) {
-            log.error("Неожиданная ошибка при создании запроса: {}", request, e);
+            log.error("Неожиданная ошибка при создании запроса: {}", dto, e);
             rollbackTransaction(transaction);
             throw new RuntimeException("Ошибка создания запроса", e);
         }
@@ -170,24 +176,18 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     @Override
     public boolean requestIsOpenForBookWithId(long bookId) {
-        Session session = HibernateUtil.getCurrentSession();
-        Transaction transaction = null;
 
         try {
-            transaction = session.beginTransaction();
             Collection<BookRequest> allRequests = requestRepository.getAllRequests();
-            transaction.commit();
 
             return allRequests.stream()
                     .anyMatch(r -> r.getBookId() == bookId &&
                                    r.getRequestStatus() == BookRequestStatus.OPENED);
         } catch (DatabaseException e) {
             log.error("Ошибка базы данных при проверке открытых запросов для книги id={}", bookId, e);
-            rollbackTransaction(transaction);
             throw e;
         } catch (Exception e) {
             log.error("Неожиданная ошибка при проверке открытых запросов для книги id={}", bookId, e);
-            rollbackTransaction(transaction);
             throw new RuntimeException("Ошибка проверки запросов", e);
         }
     }

@@ -1,12 +1,12 @@
 package ebookstore.repository.implement.dao;
 
-import di.annotation.Component;
 import ebookstore.model.Book;
 import ebookstore.model.Client;
 import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.repository.OrderRepository;
 import ebookstore.util.ConnectionManager;
+import org.springframework.stereotype.Component;
 
 import java.sql.Date;
 import java.sql.ResultSet;

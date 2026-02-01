@@ -1,9 +1,9 @@
 package ebookstore.repository.implement;
 
-import di.annotation.Component;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.repository.BookRequestRepository;
+import org.springframework.stereotype.Component;
 
 import java.io.Serial;
 import java.io.Serializable;
