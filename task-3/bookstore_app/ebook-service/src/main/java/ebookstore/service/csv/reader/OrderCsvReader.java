@@ -1,7 +1,6 @@
 package ebookstore.service.csv.reader;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.order.OrderCreateDto;
 import ebookstore.model.Book;
 import ebookstore.model.Client;
 import ebookstore.model.Order;
@@ -9,6 +8,7 @@ import ebookstore.model.enums.OrderStatus;
 import ebookstore.service.BookService;
 import ebookstore.service.ClientService;
 import ebookstore.service.OrderService;
+import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -19,19 +19,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
+@Service
 public class OrderCsvReader {
 
-    @Autowired
-    private OrderService orderService;
+    private final OrderService orderService;
+    private final BookService bookService;
+    private final ClientService clientService;
 
-    @Autowired
-    private BookService bookService;
-
-    @Autowired
-    private ClientService clientService;
-
-    public OrderCsvReader() {
+    public OrderCsvReader(OrderService orderService,
+                          BookService bookService,
+                          ClientService clientService) {
+        this.orderService = orderService;
+        this.bookService = bookService;
+        this.clientService = clientService;
     }
 
     public List<List<String>> readFromCsv(String fileName) {
@@ -90,7 +90,7 @@ public class OrderCsvReader {
                     orderService.updateOrder(order);
                     System.out.println("Обновлен заказ: " + id);
                 } else {
-                    orderService.createOrder(order);
+                    orderService.createOrder(new OrderCreateDto(book, client));
                     System.out.println("Добавлен заказ: " + id);
                 }
                 successCount++;

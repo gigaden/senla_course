@@ -1,19 +1,19 @@
 package ebookstore.console;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
 import ebookstore.controller.ConsoleBookController;
 import ebookstore.controller.ConsoleBookRequestController;
 import ebookstore.controller.ConsoleClientController;
 import ebookstore.controller.ConsoleOrderController;
+import ebookstore.dto.book.BookCreateDto;
+import ebookstore.dto.bookrequest.BookRequestCreateDto;
+import ebookstore.dto.order.OrderCreateDto;
 import ebookstore.exception.BookNotFoundException;
 import ebookstore.exception.ClientNotFoundException;
 import ebookstore.exception.OrderNotFoundException;
 import ebookstore.model.Book;
-import ebookstore.model.BookRequest;
 import ebookstore.model.Client;
-import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.Scanner;
@@ -21,21 +21,22 @@ import java.util.Scanner;
 @Component
 public class MenuController {
 
-    @Autowired
-    private ConsoleBookController bookController;
+    private final ConsoleBookController bookController;
+    private final ConsoleClientController clientController;
+    private final ConsoleOrderController orderController;
+    private final ConsoleBookRequestController requestController;
+    private final Scanner scanner;
 
-    @Autowired
-    private ConsoleClientController clientController;
-
-    @Autowired
-    private ConsoleOrderController orderController;
-
-    @Autowired
-    private ConsoleBookRequestController requestController;
-
-    private final Scanner scanner = new Scanner(System.in);
-
-    public MenuController() {
+    public MenuController(ConsoleBookController bookController,
+                          ConsoleClientController clientController,
+                          ConsoleOrderController orderController,
+                          ConsoleBookRequestController requestController,
+                          Scanner scanner) {
+        this.bookController = bookController;
+        this.clientController = clientController;
+        this.orderController = orderController;
+        this.requestController = requestController;
+        this.scanner = scanner;
     }
 
     public void processBookMenu() {
@@ -151,11 +152,11 @@ public class MenuController {
             System.out.println("Введите стоимость книги:");
             double price = Double.parseDouble(scanner.nextLine());
 
-            Book book = new Book(title, author, description, date, price);
+            BookCreateDto book = new BookCreateDto(title, author, description, date, price);
             bookController.saveBook(book);
             System.out.println("Книга добавлена");
         } catch (Exception e) {
-            System.out.println("Ошибка ввода данных");
+            System.out.println("Ошибка ввода данных: " + e);
         }
     }
 
@@ -199,7 +200,7 @@ public class MenuController {
             Book book = new Book("", "", "", LocalDate.now(), 0.0);
             book.setId(bookId);
 
-            Order order = new Order(book, client);
+            OrderCreateDto order = new OrderCreateDto(book, client);
             orderController.saveOrder(order);
             System.out.println("Заказ успешно создан!");
         } catch (BookNotFoundException e) {
@@ -276,7 +277,7 @@ public class MenuController {
             System.out.println("Введите ID книги:");
             long bookId = Long.parseLong(scanner.nextLine());
 
-            BookRequest request = new BookRequest(bookId, clientId);
+            BookRequestCreateDto request = new BookRequestCreateDto(bookId, clientId);
             requestController.createRequest(request);
             System.out.println("Запрос на книгу успешно создан!");
         } catch (BookNotFoundException e) {

@@ -1,7 +1,6 @@
 package ebookstore.controller;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.order.OrderCreateDto;
 import ebookstore.dto.order.OrderDetailsDto;
 import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
@@ -9,27 +8,26 @@ import ebookstore.service.OrderService;
 import ebookstore.service.csv.reader.OrderCsvReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
-@Component
+@Controller
 public class ConsoleOrderController {
 
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private OrderCsvReader csvReader;
-
+    private final OrderService orderService;
+    private final OrderCsvReader csvReader;
     private static final Logger log = LoggerFactory.getLogger(ConsoleOrderController.class);
 
-    public ConsoleOrderController() {
+    public ConsoleOrderController(OrderService orderService, OrderCsvReader csvReader) {
+        this.orderService = orderService;
+        this.csvReader = csvReader;
     }
 
-    public void saveOrder(Order order) {
+    public void saveOrder(OrderCreateDto order) {
         log.info("Создаём заказ");
         orderService.createOrder(order);
         log.info("Заказ успешно создан");

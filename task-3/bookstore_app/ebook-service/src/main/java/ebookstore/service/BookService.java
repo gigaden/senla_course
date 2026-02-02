@@ -1,15 +1,17 @@
 package ebookstore.service;
 
+import ebookstore.dto.book.BookCreateDto;
 import ebookstore.dto.book.BookDescriptionDto;
 import ebookstore.dto.book.BookResponseDto;
 import ebookstore.model.Book;
+import jakarta.validation.Valid;
 
 import java.util.Collection;
 import java.util.Comparator;
 
 public interface BookService {
 
-    BookResponseDto saveBook(Book book);
+    BookResponseDto saveBook(@Valid BookCreateDto book);
 
     Collection<Book> getAllBooks();
 

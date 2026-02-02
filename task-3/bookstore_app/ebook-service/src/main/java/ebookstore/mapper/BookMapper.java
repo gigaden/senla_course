@@ -1,5 +1,6 @@
 package ebookstore.mapper;
 
+import ebookstore.dto.book.BookCreateDto;
 import ebookstore.dto.book.BookDescriptionDto;
 import ebookstore.dto.book.BookResponseDto;
 import ebookstore.model.Book;
@@ -38,6 +39,22 @@ public final class BookMapper {
                 book.getTitle(),
                 book.getAuthor(),
                 book.getDescription()
+        );
+    }
+
+    /**
+     * Метод мапит из дто в книгу
+     *
+     * @param dto - дто книги
+     * @return - книга
+     */
+    public static Book mapCreateDtoToBook(BookCreateDto dto) {
+        return new Book(
+                dto.title(),
+                dto.author(),
+                dto.description(),
+                dto.date(),
+                dto.price()
         );
     }
 }

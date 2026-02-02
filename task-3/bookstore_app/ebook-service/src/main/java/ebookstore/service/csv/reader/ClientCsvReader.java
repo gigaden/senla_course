@@ -1,9 +1,9 @@
 package ebookstore.service.csv.reader;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.model.Client;
 import ebookstore.service.ClientService;
+import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -13,13 +13,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
+@Service
 public class ClientCsvReader {
 
-    @Autowired
-    private ClientService clientService;
+    private final ClientService clientService;
 
-    public ClientCsvReader() {
+    public ClientCsvReader(ClientService clientService) {
+        this.clientService = clientService;
     }
 
     public List<List<String>> readFromCsv(String fileName) {
@@ -72,7 +72,7 @@ public class ClientCsvReader {
                     clientService.updateClient(client);
                     System.out.println("Обновлен клиент: " + name + " " + surname);
                 } else {
-                    clientService.saveClient(client);
+                    clientService.saveClient(new ClientCreateDto(name, surname, email, login, password));
                     System.out.println("Добавлен клиент: " + name + " " + surname);
                 }
                 successCount++;

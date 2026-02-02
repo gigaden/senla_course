@@ -1,7 +1,7 @@
 package ebookstore.console;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+
+import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
 
@@ -9,12 +9,11 @@ import java.util.Scanner;
 public class ConsoleMenu {
 
     private final Scanner scanner;
+    private final MenuController menuController;
 
-    @Autowired
-    private MenuController menuController;
-
-    public ConsoleMenu() {
-        scanner = new Scanner(System.in);
+    public ConsoleMenu(Scanner scanner, MenuController menuController) {
+        this.scanner = scanner;
+        this.menuController = menuController;
     }
 
     public void start() {

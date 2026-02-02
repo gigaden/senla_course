@@ -1,10 +1,10 @@
 package ebookstore.service.csv.reader;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.book.BookCreateDto;
 import ebookstore.model.Book;
 import ebookstore.model.enums.BookStatus;
 import ebookstore.service.BookService;
+import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -15,14 +15,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
+@Service
 public class BookCsvReader {
 
-    @Autowired
-    private BookService bookService;
+    private final BookService bookService;
 
-    public BookCsvReader() {
-
+    public BookCsvReader(BookService bookService) {
+        this.bookService = bookService;
     }
 
     public List<List<String>> readFromCsv(String fileName) {
@@ -77,7 +76,11 @@ public class BookCsvReader {
                     bookService.updateBook(book);
                     System.out.println("Обновлена книга: " + title);
                 } else {
-                    bookService.saveBook(book);
+                    bookService.saveBook(new BookCreateDto(book.getTitle(),
+                            book.getAuthor(),
+                            book.getDescription(),
+                            book.getDateOfPublication(),
+                            book.getPrice()));
                     System.out.println("Добавлена книга: " + title);
                 }
                 successCount++;

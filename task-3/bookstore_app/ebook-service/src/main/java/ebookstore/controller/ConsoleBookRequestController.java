@@ -1,15 +1,14 @@
 package ebookstore.controller;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.bookrequest.BookRequestCreateDto;
 import ebookstore.dto.bookrequest.BookRequestDto;
 import ebookstore.dto.bookrequest.RequestDto;
-import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.csv.reader.BookRequestCsvReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -18,21 +17,19 @@ import java.util.List;
 /**
  * Контроллер обрабатывает обращения к запросам на книги
  */
-@Component
+@Controller
 public class ConsoleBookRequestController {
 
-    @Autowired
-    private BookRequestService requestService;
-
-    @Autowired
-    private BookRequestCsvReader csvReader;
-
+    private final BookRequestService requestService;
+    private final BookRequestCsvReader csvReader;
     private static final Logger log = LoggerFactory.getLogger(ConsoleBookRequestController.class);
 
-    public ConsoleBookRequestController() {
+    public ConsoleBookRequestController(BookRequestService requestService, BookRequestCsvReader csvReader) {
+        this.requestService = requestService;
+        this.csvReader = csvReader;
     }
 
-    public void createRequest(BookRequest request) {
+    public void createRequest(BookRequestCreateDto request) {
         log.info("Создаём запрос на книгу");
         BookRequestDto response = requestService.createRequest(request);
         System.out.println(response);

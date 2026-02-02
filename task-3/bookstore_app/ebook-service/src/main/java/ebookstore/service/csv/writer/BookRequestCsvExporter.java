@@ -1,15 +1,15 @@
 package ebookstore.service.csv.writer;
 
-import di.annotation.Component;
 import ebookstore.model.BookRequest;
 import ebookstore.service.CsvExporter;
+import org.springframework.stereotype.Service;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
 
-@Component
+@Service
 public class BookRequestCsvExporter implements CsvExporter<BookRequest> {
 
     @Override

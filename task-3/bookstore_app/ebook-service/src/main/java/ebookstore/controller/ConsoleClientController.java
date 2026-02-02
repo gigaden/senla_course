@@ -1,32 +1,30 @@
 package ebookstore.controller;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.dto.client.ClientResponseDto;
 import ebookstore.model.Client;
 import ebookstore.service.ClientService;
 import ebookstore.service.csv.reader.ClientCsvReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
 
 import java.util.Collection;
 import java.util.List;
 
-@Component
+@Controller
 public class ConsoleClientController {
 
-    @Autowired
-    private ClientService clientService;
-
-    @Autowired
-    private ClientCsvReader csvReader;
-
+    private final ClientService clientService;
+    private final ClientCsvReader csvReader;
     private static final Logger log = LoggerFactory.getLogger(ConsoleClientController.class);
 
-    public ConsoleClientController() {
+    public ConsoleClientController(ClientService clientService, ClientCsvReader csvReader) {
+        this.clientService = clientService;
+        this.csvReader = csvReader;
     }
 
-    public void saveClient(Client client) {
+    public void saveClient(ClientCreateDto client) {
         log.info("Сохраняем клиента");
         ClientResponseDto clientResponseDto = clientService.saveClient(client);
         System.out.println(clientResponseDto);

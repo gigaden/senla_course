@@ -1,7 +1,6 @@
 package ebookstore.controller;
 
-import di.annotation.Autowired;
-import di.annotation.Component;
+import ebookstore.dto.book.BookCreateDto;
 import ebookstore.dto.book.BookDescriptionDto;
 import ebookstore.dto.book.BookResponseDto;
 import ebookstore.model.Book;
@@ -10,6 +9,7 @@ import ebookstore.service.BookService;
 import ebookstore.service.csv.reader.BookCsvReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -18,25 +18,23 @@ import java.util.List;
 /**
  * Контроллер обрабатывает запросы пользователя к книгам
  */
-@Component
+@Controller
 public class ConsoleBookController {
 
-    @Autowired
-    private BookService bookService;
-
-    @Autowired
-    private BookCsvReader csvReader;
-
+    private final BookService bookService;
+    private final BookCsvReader csvReader;
     private static final Logger log = LoggerFactory.getLogger(ConsoleBookController.class);
 
-    public ConsoleBookController() {
+    public ConsoleBookController(BookService bookService, BookCsvReader csvReader) {
+        this.bookService = bookService;
+        this.csvReader = csvReader;
     }
 
-    public void saveBook(Book book) {
-        log.info("Сохраняем в базу книгу {}", book.getTitle());
+    public void saveBook(BookCreateDto book) {
+        log.info("Сохраняем в базу книгу {}", book.title());
         BookResponseDto responseDto = bookService.saveBook(book);
         System.out.println(responseDto);
-        log.info("Сохранили в базу книгу {}", book.getTitle());
+        log.info("Сохранили в базу книгу {}", book.title());
     }
 
     public void getAllBooksByAlphabet() {

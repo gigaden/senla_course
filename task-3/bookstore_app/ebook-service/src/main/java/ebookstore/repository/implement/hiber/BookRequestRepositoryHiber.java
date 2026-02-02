@@ -1,14 +1,16 @@
 package ebookstore.repository.implement.hiber;
 
-import di.annotation.Component;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.repository.BookRequestRepository;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.Optional;
 
-@Component
+@Repository
+@Primary
 public class BookRequestRepositoryHiber extends BaseRepositoryHiber<BookRequest, Long> implements BookRequestRepository {
 
     public BookRequestRepositoryHiber() {

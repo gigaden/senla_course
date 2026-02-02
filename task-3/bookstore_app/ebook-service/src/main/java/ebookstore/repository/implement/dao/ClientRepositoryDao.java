@@ -1,9 +1,9 @@
 package ebookstore.repository.implement.dao;
 
-import di.annotation.Component;
 import ebookstore.model.Client;
 import ebookstore.repository.ClientRepository;
 import ebookstore.util.ConnectionManager;
+import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
