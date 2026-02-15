@@ -51,22 +51,25 @@ public class BookServiceImpl implements BookService {
     private final OrderRepository orderRepository;
     private final BookCsvExporter bookCsvExporter;
     private final BookRequestService requestService;
+    private final HibernateUtil hibernateUtil;
 
     private static final Logger log = LoggerFactory.getLogger(BookServiceImpl.class);
 
     public BookServiceImpl(BookRepository bookRepository,
                            OrderRepository orderRepository,
                            BookCsvExporter bookCsvExporter,
-                           @Lazy BookRequestService requestService) {
+                           @Lazy BookRequestService requestService,
+                           HibernateUtil hibernateUtil) {
         this.bookRepository = bookRepository;
         this.orderRepository = orderRepository;
         this.bookCsvExporter = bookCsvExporter;
         this.requestService = requestService;
+        this.hibernateUtil = hibernateUtil;
     }
 
     @Override
     public BookResponseDto saveBook(BookCreateDto bookDto) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -98,7 +101,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Collection<Book> getAllBooks() {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -151,7 +154,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookResponseDto updateBook(Book book) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -172,7 +175,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void deleteBookById(long bookId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -192,7 +195,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void makeBookAbsent(long bookId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -225,7 +228,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Collection<BookResponseDto> getStaleBooks(Comparator<Book> comparator) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -278,7 +281,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDescriptionDto getBookDescription(long bookId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -306,7 +309,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public boolean checkBookIsExist(long bookId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {

@@ -24,13 +24,18 @@ public class Book implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    @Column(nullable = false)
     private String title;
+    @Column(nullable = false)
     private String author;
+    @Column(nullable = false)
     private String description;
-    @Column(name = "date_of_publication")
+    @Column(name = "date_of_publication", nullable = false)
     private LocalDate dateOfPublication;
+    @Column(nullable = false)
     private double price;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private BookStatus status;
 
     public Book(String title, String author, String description, LocalDate dateOfPublication, double price) {

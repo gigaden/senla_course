@@ -39,22 +39,25 @@ public class OrderServiceImpl implements OrderService {
     private final ClientService clientService;
     private final BookRequestService requestService;
     private final OrderCsvExporter orderCsvExporter;
+    private final HibernateUtil hibernateUtil;
 
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             ClientService clientService,
                             BookRequestService requestService,
-                            OrderCsvExporter orderCsvExporter) {
+                            OrderCsvExporter orderCsvExporter,
+                            HibernateUtil hibernateUtil) {
         this.orderRepository = orderRepository;
         this.clientService = clientService;
         this.requestService = requestService;
         this.orderCsvExporter = orderCsvExporter;
+        this.hibernateUtil = hibernateUtil;
     }
 
     @Override
     public Order createOrder(OrderCreateDto dto) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -79,7 +82,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order getOrderById(long orderId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -109,7 +112,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Collection<Order> getAllOrders() {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -130,7 +133,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Collection<Order> getAllOrders(Comparator<Order> comparator) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -152,7 +155,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void changeStatus(long orderId, OrderStatus orderStatus) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -199,7 +202,7 @@ public class OrderServiceImpl implements OrderService {
             LocalDate end,
             Comparator<Order> comparator
     ) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -227,7 +230,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public double getEarnedAmountInPeriod(LocalDate start, LocalDate end) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -255,7 +258,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public int getCompletedOrdersCountInPeriod(LocalDate start, LocalDate end) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -282,7 +285,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDetailsDto getOrderDetails(long orderId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -315,7 +318,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public boolean checkOrderIsExist(long orderId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -336,7 +339,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order updateOrder(Order order) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -369,7 +372,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void exportOrdersToCsv(String filePath) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {

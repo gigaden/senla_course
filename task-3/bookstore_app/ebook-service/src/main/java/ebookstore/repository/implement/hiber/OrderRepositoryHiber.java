@@ -15,13 +15,16 @@ import java.util.Optional;
 @Primary
 public class OrderRepositoryHiber extends BaseRepositoryHiber<Order, Long> implements OrderRepository {
 
-    public OrderRepositoryHiber() {
+    private final HibernateUtil hibernateUtil;
+
+    public OrderRepositoryHiber(HibernateUtil hibernateUtil) {
         super(Order.class);
+        this.hibernateUtil = hibernateUtil;
     }
 
     @Override
     public Optional<Order> getOrderById(long orderId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Order order = session.createQuery(
                         "select o from Order o " +
                         "left join fetch o.book " +
@@ -35,7 +38,7 @@ public class OrderRepositoryHiber extends BaseRepositoryHiber<Order, Long> imple
 
     @Override
     public Collection<Order> getAllOrders() {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         return session.createQuery(
                         "select distinct o from Order o " +
                         "left join fetch o.book " +
