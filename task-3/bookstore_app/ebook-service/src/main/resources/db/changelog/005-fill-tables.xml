@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        logicalFilePath="db/changelog.xml">
+
+    <changeSet id="005-insert-test-books" author="gigaden">
+        <comment>Insert test data for books table</comment>
+
+        <insert tableName="books">
+            <column name="title" value="Война и мир"/>
+            <column name="author" value="Лев Толстой"/>
+            <column name="description" value="Роман-эпопея, описывающий русское общество в эпоху войн против Наполеона."/>
+            <column name="date_of_publication" valueDate="1869-01-01"/>
+            <column name="price" valueNumeric="500.00"/>
+            <column name="status" value="AVAILABLE"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Преступление и наказание"/>
+            <column name="author" value="Фёдор Достоевский"/>
+            <column name="description" value="Роман о психических страданиях и моральных дилеммах бывшего студента Родиона Раскольникова."/>
+            <column name="date_of_publication" valueDate="1866-01-01"/>
+            <column name="price" valueNumeric="450.00"/>
+            <column name="status" value="AVAILABLE"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Мастер и Маргарита"/>
+            <column name="author" value="Михаил Булгаков"/>
+            <column name="description" value="Роман, сочетающий в себе элементы сатиры, фантастики и философской притчи."/>
+            <column name="date_of_publication" valueDate="1967-01-01"/>
+            <column name="price" valueNumeric="550.00"/>
+            <column name="status" value="ABSENT"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="1984"/>
+            <column name="author" value="Джордж Оруэлл"/>
+            <column name="description" value="Антиутопический роман о тоталитарном обществе под постоянным наблюдением."/>
+            <column name="date_of_publication" valueDate="1949-06-08"/>
+            <column name="price" valueNumeric="400.00"/>
+            <column name="status" value="AVAILABLE"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Улисс"/>
+            <column name="author" value="Джеймс Джойс"/>
+            <column name="description" value="Модернистский роман, описывающий один день жизни Леопольда Блума в Дублине."/>
+            <column name="date_of_publication" valueDate="1922-02-02"/>
+            <column name="price" valueNumeric="600.00"/>
+            <column name="status" value="AVAILABLE"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Властелин колец"/>
+            <column name="author" value="Дж. Р. Р. Толкин"/>
+            <column name="description" value="Эпический фэнтезийный роман о борьбе за Кольцо Всевластия."/>
+            <column name="date_of_publication" valueDate="1954-07-29"/>
+            <column name="price" valueNumeric="700.00"/>
+            <column name="status" value="AVAILABLE"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Гарри Поттер и философский камень"/>
+            <column name="author" value="Дж. К. Роулинг"/>
+            <column name="description" value="Первая книга серии о юном волшебнике Гарри Поттере."/>
+            <column name="date_of_publication" valueDate="1997-06-26"/>
+            <column name="price" valueNumeric="300.00"/>
+            <column name="status" value="AVAILABLE"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Маленький принц"/>
+            <column name="author" value="Антуан де Сент-Экзюпери"/>
+            <column name="description" value="Философская сказка о путешествиях маленького принца."/>
+            <column name="date_of_publication" valueDate="1943-04-06"/>
+            <column name="price" valueNumeric="250.00"/>
+            <column name="status" value="AVAILABLE"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Алиса в Стране чудес"/>
+            <column name="author" value="Льюис Кэрролл"/>
+            <column name="description" value="Сказка о девочке Алисе, попадающей в подземную страну чудес."/>
+            <column name="date_of_publication" valueDate="1865-11-26"/>
+            <column name="price" valueNumeric="350.00"/>
+            <column name="status" value="ABSENT"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Шерлок Холмс"/>
+            <column name="author" value="Артур Конан Дойл"/>
+            <column name="description" value="Сборник рассказов о знаменитом детективе Шерлоке Холмсе."/>
+            <column name="date_of_publication" valueDate="1892-01-01"/>
+            <column name="price" valueNumeric="400.00"/>
+            <column name="status" value="AVAILABLE"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="books">
+                <where>title IN ('Война и мир', 'Преступление и наказание', 'Мастер и Маргарита',
+                    '1984', 'Улисс', 'Властелин колец', 'Гарри Поттер и философский камень',
+                    'Маленький принц', 'Алиса в Стране чудес', 'Шерлок Холмс')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="006-insert-test-clients" author="gigaden">
+        <comment>Insert test data for clients table</comment>
+
+        <insert tableName="clients">
+            <column name="name" value="Иван"/>
+            <column name="surname" value="Иванов"/>
+            <column name="email" value="ivanov@example.com"/>
+            <column name="login" value="ivanov"/>
+            <column name="password" value="password123"/>
+        </insert>
+
+        <insert tableName="clients">
+            <column name="name" value="Петр"/>
+            <column name="surname" value="Петров"/>
+            <column name="email" value="petrov@example.com"/>
+            <column name="login" value="petrov"/>
+            <column name="password" value="pass123"/>
+        </insert>
+
+        <insert tableName="clients">
+            <column name="name" value="Сергей"/>
+            <column name="surname" value="Сергеев"/>
+            <column name="email" value="sergeev@example.com"/>
+            <column name="login" value="sergeev"/>
+            <column name="password" value="qwerty"/>
+        </insert>
+
+        <insert tableName="clients">
+            <column name="name" value="Анна"/>
+            <column name="surname" value="Сидорова"/>
+            <column name="email" value="sidorova@example.com"/>
+            <column name="login" value="sidorova"/>
+            <column name="password" value="anna123"/>
+        </insert>
+
+        <insert tableName="clients">
+            <column name="name" value="Мария"/>
+            <column name="surname" value="Кузнецова"/>
+            <column name="email" value="kuznetsova@example.com"/>
+            <column name="login" value="kuznetsova"/>
+            <column name="password" value="maria_pass"/>
+        </insert>
+
+        <insert tableName="clients">
+            <column name="name" value="Алексей"/>
+            <column name="surname" value="Попов"/>
+            <column name="email" value="popov@example.com"/>
+            <column name="login" value="popov"/>
+            <column name="password" value="alexey123"/>
+        </insert>
+
+        <insert tableName="clients">
+            <column name="name" value="Елена"/>
+            <column name="surname" value="Васильева"/>
+            <column name="email" value="vasileva@example.com"/>
+            <column name="login" value="vasileva"/>
+            <column name="password" value="elena_pass"/>
+        </insert>
+
+        <insert tableName="clients">
+            <column name="name" value="Дмитрий"/>
+            <column name="surname" value="Смирнов"/>
+            <column name="email" value="smirnov@example.com"/>
+            <column name="login" value="smirnov"/>
+            <column name="password" value="dmitry123"/>
+        </insert>
+
+        <insert tableName="clients">
+            <column name="name" value="Ольга"/>
+            <column name="surname" value="Морозова"/>
+            <column name="email" value="morozova@example.com"/>
+            <column name="login" value="morozova"/>
+            <column name="password" value="olga_pass"/>
+        </insert>
+
+        <insert tableName="clients">
+            <column name="name" value="Николай"/>
+            <column name="surname" value="Новиков"/>
+            <column name="email" value="novikov@example.com"/>
+            <column name="login" value="novikov"/>
+            <column name="password" value="nikolay123"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="clients">
+                <where>email IN ('ivanov@example.com', 'petrov@example.com', 'sergeev@example.com',
+                    'sidorova@example.com', 'kuznetsova@example.com', 'popov@example.com',
+                    'vasileva@example.com', 'smirnov@example.com', 'morozova@example.com',
+                    'novikov@example.com')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="007-insert-test-orders" author="gigaden">
+        <comment>Insert test data for orders table</comment>
+        <insert tableName="orders">
+            <column name="book_id" valueNumeric="1"/>
+            <column name="client_id" valueNumeric="1"/>
+            <column name="created_on" valueDate="2023-01-15"/>
+            <column name="order_status" value="NEW"/>
+        </insert>
+
+        <insert tableName="orders">
+            <column name="book_id" valueNumeric="2"/>
+            <column name="client_id" valueNumeric="2"/>
+            <column name="created_on" valueDate="2023-02-20"/>
+            <column name="completed_on" valueDate="2023-02-25"/>
+            <column name="order_status" value="COMPLETED"/>
+        </insert>
+
+        <insert tableName="orders">
+            <column name="book_id" valueNumeric="3"/>
+            <column name="client_id" valueNumeric="3"/>
+            <column name="created_on" valueDate="2023-03-10"/>
+            <column name="order_status" value="CANCELED"/>
+        </insert>
+
+        <insert tableName="orders">
+            <column name="book_id" valueNumeric="4"/>
+            <column name="client_id" valueNumeric="4"/>
+            <column name="created_on" valueDate="2023-04-05"/>
+            <column name="completed_on" valueDate="2023-04-10"/>
+            <column name="order_status" value="COMPLETED"/>
+        </insert>
+
+        <insert tableName="orders">
+            <column name="book_id" valueNumeric="5"/>
+            <column name="client_id" valueNumeric="5"/>
+            <column name="created_on" valueDate="2023-05-12"/>
+            <column name="order_status" value="NEW"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="orders"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="008-insert-test-requests" author="gigaden">
+        <comment>Insert test data for requests table</comment>
+
+        <insert tableName="requests">
+            <column name="book_id" valueNumeric="3"/>
+            <column name="client_id" valueNumeric="6"/>
+            <column name="request_status" value="OPENED"/>
+            <column name="created_on" valueDate="2023-06-01"/>
+        </insert>
+
+        <insert tableName="requests">
+            <column name="book_id" valueNumeric="9"/>
+            <column name="client_id" valueNumeric="7"/>
+            <column name="request_status" value="OPENED"/>
+            <column name="created_on" valueDate="2023-06-02"/>
+        </insert>
+
+        <insert tableName="requests">
+            <column name="book_id" valueNumeric="1"/>
+            <column name="client_id" valueNumeric="8"/>
+            <column name="request_status" value="CLOSED"/>
+            <column name="created_on" valueDate="2023-05-20"/>
+        </insert>
+
+        <insert tableName="requests">
+            <column name="book_id" valueNumeric="4"/>
+            <column name="client_id" valueNumeric="9"/>
+            <column name="request_status" value="OPENED"/>
+            <column name="created_on" valueDate="2023-06-03"/>
+        </insert>
+
+        <insert tableName="requests">
+            <column name="book_id" valueNumeric="5"/>
+            <column name="client_id" valueNumeric="10"/>
+            <column name="request_status" value="CLOSED"/>
+            <column name="created_on" valueDate="2023-05-25"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="requests"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

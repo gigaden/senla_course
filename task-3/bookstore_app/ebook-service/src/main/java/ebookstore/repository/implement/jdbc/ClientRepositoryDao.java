@@ -1,4 +1,4 @@
-package ebookstore.repository.implement.dao;
+package ebookstore.repository.implement.jdbc;
 
 import ebookstore.model.Client;
 import ebookstore.repository.ClientRepository;

@@ -23,12 +23,13 @@ public class BookRequest implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private long requestId;
 
-    @Column(name = "book_id")
+    @Column(name = "book_id", nullable = false)
     private long bookId;
 
-    @Column(name = "client_id")
+    @Column(name = "client_id", nullable = false)
     private long clientId;
 
     @Column(name = "request_status")

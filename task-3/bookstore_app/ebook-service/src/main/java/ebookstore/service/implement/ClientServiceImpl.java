@@ -31,18 +31,21 @@ public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
     private final ClientCsvExporter clientCsvExporter;
+    private final HibernateUtil hibernateUtil;
 
     public ClientServiceImpl(ClientRepository clientRepository,
-                             ClientCsvExporter clientCsvExporter) {
+                             ClientCsvExporter clientCsvExporter,
+                             HibernateUtil hibernateUtil) {
         this.clientRepository = clientRepository;
         this.clientCsvExporter = clientCsvExporter;
+        this.hibernateUtil = hibernateUtil;
     }
 
     private static final Logger log = LoggerFactory.getLogger(ClientServiceImpl.class);
 
     @Override
     public ClientResponseDto saveClient(ClientCreateDto dto) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -63,7 +66,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Collection<ClientResponseDto> getAllClients() {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -86,7 +89,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client getClientById(long clientId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -121,7 +124,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientResponseDto updateClient(Client client) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -154,7 +157,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void deleteClientById(long clientId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -199,7 +202,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void exportClientsToCsv(String filePath) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {

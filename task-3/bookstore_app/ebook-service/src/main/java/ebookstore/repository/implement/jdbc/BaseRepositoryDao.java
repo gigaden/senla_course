@@ -1,4 +1,4 @@
-package ebookstore.repository.implement.dao;
+package ebookstore.repository.implement.jdbc;
 
 import ebookstore.exception.DatabaseException;
 import ebookstore.mapper.KeyMapper;

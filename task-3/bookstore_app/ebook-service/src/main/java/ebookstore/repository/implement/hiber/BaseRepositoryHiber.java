@@ -6,6 +6,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
@@ -16,6 +17,9 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     private final Class<T> type;
     private static final Logger log = LoggerFactory.getLogger(BaseRepositoryHiber.class);
+    @Autowired
+    private HibernateUtil hibernateUtil;
+
 
     protected BaseRepositoryHiber(Class<T> type) {
         this.type = type;
@@ -23,7 +27,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     protected T save(T entity) {
         try {
-            Session session = HibernateUtil.getCurrentSession();
+            Session session = hibernateUtil.getCurrentSession();
             session.persist(entity);
             return entity;
         } catch (HibernateException e) {
@@ -34,7 +38,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     protected T update(T entity) {
         try {
-            Session session = HibernateUtil.getCurrentSession();
+            Session session = hibernateUtil.getCurrentSession();
             return session.merge(entity);
         } catch (HibernateException e) {
             log.error("Ошибка БД при обновлении {}: {}", type.getSimpleName(), entity, e);
@@ -44,7 +48,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     protected void delete(PK id) {
         try {
-            Session session = HibernateUtil.getCurrentSession();
+            Session session = hibernateUtil.getCurrentSession();
             T entity = session.find(type, id);
             if (entity != null) {
                 session.remove(entity);
@@ -58,7 +62,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
     protected List<T> findAll() {
         try {
             log.debug("Пытаюсь получить все записи {}", type.getSimpleName());
-            Session session = HibernateUtil.getCurrentSession();
+            Session session = hibernateUtil.getCurrentSession();
             return session.createQuery("FROM " + type.getSimpleName(), type)
                     .getResultList();
         } catch (HibernateException e) {
@@ -69,7 +73,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     protected T find(PK id) {
         try {
-            Session session = HibernateUtil.getCurrentSession();
+            Session session = hibernateUtil.getCurrentSession();
             return session.find(type, id);
         } catch (HibernateException e) {
             log.error("Ошибка поиска сущности {} с id: {}", type.getSimpleName(), id, e);
@@ -79,7 +83,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     protected boolean exists(PK id) {
         try {
-            Session session = HibernateUtil.getCurrentSession();
+            Session session = hibernateUtil.getCurrentSession();
             T entity = session.find(type, id);
             return entity != null;
         } catch (HibernateException e) {

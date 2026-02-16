@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        logicalFilePath="db/changelog.xml">
+    <changeSet id="003-create-table-orders" author="gigaden">
+        <createTable tableName="orders">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="book_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_orders_books"
+                             referencedTableName="books" referencedColumnNames="id"/>
+            </column>
+            <column name="client_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_orders_clients"
+                             referencedTableName="clients" referencedColumnNames="id"/>
+            </column>
+            <column name="created_on" type="DATE" defaultValueDate="CURRENT_DATE">
+                <constraints nullable="true"/>
+            </column>
+            <column name="completed_on" type="DATE">
+                <constraints nullable="true"/>
+            </column>
+            <column name="order_status" type="VARCHAR(128)" defaultValue="NEW">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <sql>
+            ALTER TABLE orders ADD CONSTRAINT ch_order_status
+                CHECK (order_status IN ('NEW', 'COMPLETED', 'CANCELED'));
+        </sql>
+
+        <rollback>
+            <dropTable tableName="orders"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

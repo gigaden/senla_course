@@ -45,21 +45,24 @@ public class BookRequestServiceImpl implements BookRequestService {
     private final BookService bookService;
     private final ClientService clientService;
     private final BookRequestCsvExporter requestCsvExporter;
+    private final HibernateUtil hibernateUtil;
     private static final Logger log = LoggerFactory.getLogger(BookRequestServiceImpl.class);
 
     public BookRequestServiceImpl(BookRequestRepository requestRepository,
                                   BookService bookService,
                                   ClientService clientService,
-                                  @Lazy BookRequestCsvExporter requestCsvExporter) {
+                                  @Lazy BookRequestCsvExporter requestCsvExporter,
+                                  HibernateUtil hibernateUtil) {
         this.requestRepository = requestRepository;
         this.bookService = bookService;
         this.clientService = clientService;
         this.requestCsvExporter = requestCsvExporter;
+        this.hibernateUtil = hibernateUtil;
     }
 
     @Override
     public BookRequestDto createRequest(BookRequestCreateDto dto) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -92,7 +95,7 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     @Override
     public BookRequestDto update(BookRequest request) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -125,7 +128,7 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     @Override
     public BookRequestDto getRequestById(long requestId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -155,7 +158,7 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     @Override
     public void changeRequestStatus(long requestId, BookRequestStatus status) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -194,7 +197,7 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     @Override
     public void closeRequestByBookId(long bookId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -230,7 +233,7 @@ public class BookRequestServiceImpl implements BookRequestService {
      */
     @Override
     public Collection<RequestDto> getSortedRequest(Comparator<RequestDto> comparator) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -256,7 +259,7 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     @Override
     public boolean checkRequestIsExist(long requestId) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
@@ -277,7 +280,7 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     @Override
     public void exportRequestsToCsv(String filePath) {
-        Session session = HibernateUtil.getCurrentSession();
+        Session session = hibernateUtil.getCurrentSession();
         Transaction transaction = null;
 
         try {
