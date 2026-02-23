@@ -13,7 +13,7 @@ import java.util.Scanner;
 @ComponentScan(basePackages = "ebookstore")
 @PropertySource("classpath:application.properties")
 @Import({DatabaseConfig.class, LiquibaseConfig.class, HibernateConfig.class})
-public class AppConfig {
+public class ConsoleConfig {
 
     @Bean
     public Scanner scanner() {

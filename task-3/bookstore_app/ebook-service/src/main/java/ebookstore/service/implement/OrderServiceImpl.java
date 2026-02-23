@@ -3,8 +3,7 @@ package ebookstore.service.implement;
 import ebookstore.dto.bookrequest.BookRequestCreateDto;
 import ebookstore.dto.order.OrderCreateDto;
 import ebookstore.dto.order.OrderDetailsDto;
-import ebookstore.exception.DatabaseException;
-import ebookstore.exception.OrderNotFoundException;
+import ebookstore.exception.notfound.OrderNotFoundException;
 import ebookstore.exception.message.OrderErrorMessages;
 import ebookstore.mapper.OrderMapper;
 import ebookstore.model.Book;
@@ -17,12 +16,10 @@ import ebookstore.service.BookRequestService;
 import ebookstore.service.ClientService;
 import ebookstore.service.OrderService;
 import ebookstore.service.csv.writer.OrderCsvExporter;
-import ebookstore.util.HibernateUtil;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
@@ -39,357 +36,187 @@ public class OrderServiceImpl implements OrderService {
     private final ClientService clientService;
     private final BookRequestService requestService;
     private final OrderCsvExporter orderCsvExporter;
-    private final HibernateUtil hibernateUtil;
 
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             ClientService clientService,
                             BookRequestService requestService,
-                            OrderCsvExporter orderCsvExporter,
-                            HibernateUtil hibernateUtil) {
+                            OrderCsvExporter orderCsvExporter) {
         this.orderRepository = orderRepository;
         this.clientService = clientService;
         this.requestService = requestService;
         this.orderCsvExporter = orderCsvExporter;
-        this.hibernateUtil = hibernateUtil;
     }
 
     @Override
+    @Transactional
     public Order createOrder(OrderCreateDto dto) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        clientService.checkClientIsExist(dto.client().getId());
+        Order newOrder = orderRepository.createOrder(OrderMapper.mapOrderDtoToOrder(dto));
+        createRequestIfBookIsAbsent(newOrder);
+        log.info("Создан новый заказ {}", newOrder);
 
-        try {
-            transaction = session.beginTransaction();
-
-            clientService.checkClientIsExist(dto.client().getId());
-            Order newOrder = orderRepository.createOrder(OrderMapper.mapOrderDtoToOrder(dto));
-            createRequestIfBookIsAbsent(newOrder);
-
-            transaction.commit();
-            return newOrder;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при сохранении заказа: {}", dto, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при сохранении заказа: {}", dto, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка сохранения заказа", e);
-        }
+        return newOrder;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Order getOrderById(long orderId) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Order order = orderRepository.getOrderById(orderId)
+                .orElseThrow(() -> {
+                    log.error("Заказ с id={} не найден", orderId);
+                    return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
+                });
+        log.info("Получен заказ с id = {}", orderId);
 
-        try {
-            transaction = session.beginTransaction();
-
-            Order order = orderRepository.getOrderById(orderId)
-                    .orElseThrow(() -> {
-                        log.error("Заказ с id={} не найден", orderId);
-                        return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
-                    });
-
-            transaction.commit();
-            return order;
-        } catch (OrderNotFoundException e) {
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении заказа с id={}", orderId, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении заказа с id={}", orderId, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка получения заказа", e);
-        }
+        return order;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Order> getAllOrders() {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Collection<Order> orders = orderRepository.getAllOrders();
+        List<Order> response = List.copyOf(orders);
+        log.info("Получен список заказов в количестве {}", orders.size());
 
-        try {
-            transaction = session.beginTransaction();
-            Collection<Order> orders = orderRepository.getAllOrders();
-            transaction.commit();
-            return List.copyOf(orders);
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении всех заказов", e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении всех заказов", e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка получения заказов", e);
-        }
+        return response;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Order> getAllOrders(Comparator<Order> comparator) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        List<Order> orders = new ArrayList<>(orderRepository.getAllOrders());
+        orders.sort(comparator);
 
-        try {
-            transaction = session.beginTransaction();
-            List<Order> orders = new ArrayList<>(orderRepository.getAllOrders());
-            orders.sort(comparator);
-            transaction.commit();
-            return List.copyOf(orders);
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении всех заказов", e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении всех заказов", e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка получения заказов", e);
-        }
+        return List.copyOf(orders);
     }
 
     @Override
+    @Transactional
     public void changeStatus(long orderId, OrderStatus orderStatus) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Order order = orderRepository.getOrderById(orderId)
+                .orElseThrow(() -> {
+                    log.error("Заказ с id={} не найден", orderId);
+                    return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
+                });
 
-        try {
-            transaction = session.beginTransaction();
-
-            Order order = orderRepository.getOrderById(orderId)
-                    .orElseThrow(() -> {
-                        log.error("Заказ с id={} не найден", orderId);
-                        return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
-                    });
-
-            if (orderStatus == OrderStatus.COMPLETED) {
-                checkRequestIfOrderStatusCompleted(order);
-                order.setCompletedOn(LocalDate.now());
-            }
-
-            order.setOrderStatus(orderStatus);
-            orderRepository.updateOrder(order);
-
-            transaction.commit();
-            log.info("Статус заказа id={} изменён на {}", orderId, orderStatus);
-        } catch (OrderNotFoundException e) {
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при изменении статуса заказа с id={}", orderId, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при изменении статуса заказа с id={}", orderId, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка изменения статуса заказа", e);
+        if (orderStatus == OrderStatus.COMPLETED) {
+            checkRequestIfOrderStatusCompleted(order);
+            order.setCompletedOn(LocalDate.now());
         }
+
+        order.setOrderStatus(orderStatus);
+        orderRepository.updateOrder(order);
+
+        log.info("Статус заказа id={} изменён на {}", orderId, orderStatus);
     }
 
     @Override
+    @Transactional
     public void cancelOrder(long orderId) {
         changeStatus(orderId, OrderStatus.CANCELED);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Order> getCompletedOrdersInPeriod(
             LocalDate start,
             LocalDate end,
             Comparator<Order> comparator
     ) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Collection<Order> orders = orderRepository.getAllOrders();
+        List<Order> response = orders.stream()
+                .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
+                .filter(o -> o.getCompletedOn() != null)
+                .filter(o -> !o.getCompletedOn().isBefore(start))
+                .filter(o -> !o.getCompletedOn().isAfter(end))
+                .sorted(comparator)
+                .toList();
+        log.info("Получена коллекция завершённых заказов {}", response.size());
 
-        try {
-            transaction = session.beginTransaction();
-            Collection<Order> orders = orderRepository.getAllOrders();
-            transaction.commit();
-
-            return orders.stream()
-                    .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
-                    .filter(o -> o.getCompletedOn() != null)
-                    .filter(o -> !o.getCompletedOn().isBefore(start))
-                    .filter(o -> !o.getCompletedOn().isAfter(end))
-                    .sorted(comparator)
-                    .toList();
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении завершенных заказов за период", e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении завершенных заказов за период", e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка получения завершенных заказов", e);
-        }
+        return response;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public double getEarnedAmountInPeriod(LocalDate start, LocalDate end) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Collection<Order> orders = orderRepository.getAllOrders();
+        double response = orders.stream()
+                .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
+                .filter(o -> o.getCompletedOn() != null)
+                .filter(o -> !o.getCompletedOn().isBefore(start))
+                .filter(o -> !o.getCompletedOn().isAfter(end))
+                .mapToDouble(o -> o.getBook().getPrice())
+                .sum();
+        log.info("Получена сумма за период = {}", response);
 
-        try {
-            transaction = session.beginTransaction();
-            Collection<Order> orders = orderRepository.getAllOrders();
-            transaction.commit();
-
-            return orders.stream()
-                    .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
-                    .filter(o -> o.getCompletedOn() != null)
-                    .filter(o -> !o.getCompletedOn().isBefore(start))
-                    .filter(o -> !o.getCompletedOn().isAfter(end))
-                    .mapToDouble(o -> o.getBook().getPrice())
-                    .sum();
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при расчете суммы за период", e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при расчете суммы за период", e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка расчета суммы за период", e);
-        }
+        return response;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getCompletedOrdersCountInPeriod(LocalDate start, LocalDate end) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Collection<Order> orders = orderRepository.getAllOrders();
+        int response = (int) orders.stream()
+                .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
+                .filter(o -> o.getCompletedOn() != null)
+                .filter(o -> !o.getCompletedOn().isBefore(start))
+                .filter(o -> !o.getCompletedOn().isAfter(end))
+                .count();
+        log.info("Получено количество завершённых заказов = {}", response);
 
-        try {
-            transaction = session.beginTransaction();
-            Collection<Order> orders = orderRepository.getAllOrders();
-            transaction.commit();
-
-            return (int) orders.stream()
-                    .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
-                    .filter(o -> o.getCompletedOn() != null)
-                    .filter(o -> !o.getCompletedOn().isBefore(start))
-                    .filter(o -> !o.getCompletedOn().isAfter(end))
-                    .count();
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при подсчете заказов за период", e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при подсчете заказов за период", e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка подсчета заказов за период", e);
-        }
+        return response;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OrderDetailsDto getOrderDetails(long orderId) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Order order = orderRepository.getOrderById(orderId)
+                .orElseThrow(() -> {
+                    log.error("Заказ с id={} не найден", orderId);
+                    return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
+                });
 
-        try {
-            transaction = session.beginTransaction();
+        Client client = clientService.getClientById(order.getClient().getId());
+        Book book = order.getBook();
+        OrderDetailsDto response = new OrderDetailsDto(order, client, book);
+        log.info("Получены детали по заказу id = {}", orderId);
 
-            Order order = orderRepository.getOrderById(orderId)
-                    .orElseThrow(() -> {
-                        log.error("Заказ с id={} не найден", orderId);
-                        return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
-                    });
-
-            Client client = clientService.getClientById(order.getClient().getId());
-            Book book = order.getBook();
-
-            transaction.commit();
-            return new OrderDetailsDto(order, client, book);
-        } catch (OrderNotFoundException e) {
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении деталей заказа с id={}", orderId, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении деталей заказа с id={}", orderId, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка получения деталей заказа", e);
-        }
+        return response;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean checkOrderIsExist(long orderId) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        boolean result = orderRepository.checkOrderIsExist(orderId);
+        log.info("Проверка существует ли заказ id {} = {}", orderId, result);
 
-        try {
-            transaction = session.beginTransaction();
-            boolean result = orderRepository.checkOrderIsExist(orderId);
-            transaction.commit();
-            return result;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при проверке существования заказа с id={}", orderId, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при проверке существования заказа с id={}", orderId, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка проверки существования заказа", e);
-        }
+        return result;
     }
 
     @Override
+    @Transactional
     public Order updateOrder(Order order) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Order existingOrder = orderRepository.getOrderById(order.getOrderId())
+                .orElseThrow(() -> {
+                    log.error("Заказ с id={} не найден для обновления", order.getOrderId());
+                    return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
+                });
 
-        try {
-            transaction = session.beginTransaction();
+        updateOrderFields(existingOrder, order);
+        Order updatedOrder = orderRepository.updateOrder(existingOrder);
+        log.info("Заказ обновлён {}", order);
 
-            Order existingOrder = orderRepository.getOrderById(order.getOrderId())
-                    .orElseThrow(() -> {
-                        log.error("Заказ с id={} не найден для обновления", order.getOrderId());
-                        return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
-                    });
-
-            updateOrderFields(existingOrder, order);
-            Order updatedOrder = orderRepository.updateOrder(existingOrder);
-
-            transaction.commit();
-            return updatedOrder;
-        } catch (OrderNotFoundException e) {
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при обновлении заказа: {}", order, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при обновлении заказа: {}", order, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка обновления заказа", e);
-        }
+        return updatedOrder;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void exportOrdersToCsv(String filePath) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Collection<Order> orders = orderRepository.getAllOrders();
 
-        try {
-            transaction = session.beginTransaction();
-            Collection<Order> orders = orderRepository.getAllOrders();
-            transaction.commit();
-
-            orderCsvExporter.exportToCsv(orders, filePath);
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при экспорте заказов в CSV", e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при экспорте заказов в CSV", e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка экспорта заказов", e);
-        }
+        orderCsvExporter.exportToCsv(orders, filePath);
     }
 
     private void createRequestIfBookIsAbsent(Order order) {
@@ -424,16 +251,6 @@ public class OrderServiceImpl implements OrderService {
         }
         if (newData.getCompletedOn() != null) {
             existingOrder.setCompletedOn(newData.getCompletedOn());
-        }
-    }
-
-    private void rollbackTransaction(Transaction transaction) {
-        if (transaction != null && transaction.isActive()) {
-            try {
-                transaction.rollback();
-            } catch (Exception rollbackEx) {
-                log.error("Ошибка при откате транзакции", rollbackEx);
-            }
         }
     }
 }

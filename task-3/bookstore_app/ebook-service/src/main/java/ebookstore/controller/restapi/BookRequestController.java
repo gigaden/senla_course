@@ -1,0 +1,109 @@
+package ebookstore.controller.restapi;
+
+import ebookstore.dto.bookrequest.BookRequestCreateDto;
+import ebookstore.dto.bookrequest.BookRequestDto;
+import ebookstore.dto.bookrequest.RequestDto;
+import ebookstore.model.enums.BookRequestStatus;
+import ebookstore.service.BookRequestService;
+import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Collection;
+import java.util.Comparator;
+
+/**
+ * Контроллер обрабатывает запросы, связанные с запросами на книги
+ */
+@RestController
+@RequestMapping("/requests")
+public class BookRequestController {
+
+    private final BookRequestService requestService;
+    private static final Logger log = LoggerFactory.getLogger(BookRequestController.class);
+
+    public BookRequestController(BookRequestService requestService) {
+        this.requestService = requestService;
+    }
+
+    /**
+     * Эндпоинт для создания нового запроса на книгу
+     *
+     * @param request - дто для создания запроса
+     * @return созданный запрос
+     */
+    @PostMapping
+    public ResponseEntity<BookRequestDto> createRequest(@RequestBody @Valid BookRequestCreateDto request) {
+        log.info("Создание запроса на книгу");
+        BookRequestDto response = requestService.createRequest(request);
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    /**
+     * Эндпоинт для получения запроса по его идентификатору
+     *
+     * @param id - идентификатор запроса
+     * @return запрос
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<BookRequestDto> getRequest(@PathVariable long id) {
+        log.info("Получение запроса с id={}", id);
+        BookRequestDto response = requestService.getRequestById(id);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    /**
+     * Эндпоинт для изменения статуса запроса
+     *
+     * @param id     - идентификатор запроса
+     * @param status - новый статус
+     */
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<String> changeRequestStatus(@PathVariable long id,
+                                                      @RequestParam BookRequestStatus status) {
+        log.info("Изменение статуса запроса id={} на {}", id, status);
+        requestService.changeRequestStatus(id, status);
+
+        return new ResponseEntity<>("Статус запроса изменён", HttpStatus.OK);
+    }
+
+    /**
+     * Эндпоинт для получения всех запросов, отсортированных по количеству запросов (по убыванию)
+     *
+     * @return коллекция запросов
+     */
+    @GetMapping("/by_count")
+    public ResponseEntity<Collection<RequestDto>> getAllRequestsByCount() {
+        log.info("Получение запросов, отсортированных по количеству (по убыванию)");
+        Collection<RequestDto> requests = requestService
+                .getSortedRequest(Comparator.comparing(RequestDto::requestCount).reversed());
+
+        return new ResponseEntity<>(requests, HttpStatus.OK);
+    }
+
+    /**
+     * Эндпоинт для получения всех запросов, отсортированных по названию книги
+     *
+     * @return коллекция запросов
+     */
+    @GetMapping("/by_title")
+    public ResponseEntity<Collection<RequestDto>> getAllRequestsByTitle() {
+        log.info("Получение запросов, отсортированных по названию книги");
+        Collection<RequestDto> requests = requestService
+                .getSortedRequest(Comparator.comparing(RequestDto::bookTitle));
+
+        return new ResponseEntity<>(requests, HttpStatus.OK);
+    }
+}

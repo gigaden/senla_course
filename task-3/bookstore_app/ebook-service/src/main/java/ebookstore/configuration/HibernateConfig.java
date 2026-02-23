@@ -1,9 +1,11 @@
 package ebookstore.configuration;
 
 import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.orm.jpa.hibernate.HibernateTransactionManager;
+import org.springframework.orm.jpa.hibernate.LocalSessionFactoryBean;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.util.Properties;
@@ -13,24 +15,24 @@ public class HibernateConfig {
 
     @Bean
     @DependsOn("liquibase")
-    public SessionFactory sessionFactory(DataSource dataSource) {
-        Configuration configuration = new Configuration();
+    public LocalSessionFactoryBean sessionFactory(DataSource dataSource) {
+        LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
+        factoryBean.setDataSource(dataSource);
 
-        configuration.addAnnotatedClass(ebookstore.model.Client.class);
-        configuration.addAnnotatedClass(ebookstore.model.Book.class);
-        configuration.addAnnotatedClass(ebookstore.model.Order.class);
-        configuration.addAnnotatedClass(ebookstore.model.BookRequest.class);
+        factoryBean.setPackagesToScan("ebookstore.model");
 
         Properties props = new Properties();
-        props.put("hibernate.hbm2ddl.auto", "validate");
-        props.put("hibernate.show_sql", "true");
-        props.put("hibernate.format_sql", "true");
-        props.put("hibernate.current_session_context_class", "thread");
+        props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+        props.put("hibernate.show_sql", true);
+        props.put("hibernate.format_sql", true);
 
-        configuration.setProperties(props);
+        factoryBean.setHibernateProperties(props);
 
-        configuration.getProperties().put("hibernate.connection.datasource", dataSource);
+        return factoryBean;
+    }
 
-        return configuration.buildSessionFactory();
+    @Bean
+    public PlatformTransactionManager transactionManager(SessionFactory sessionFactory) {
+        return new HibernateTransactionManager(sessionFactory);
     }
 }
