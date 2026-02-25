@@ -2,23 +2,21 @@ package ebookstore.service.implement;
 
 import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.dto.client.ClientResponseDto;
-import ebookstore.exception.ClientNotFoundException;
-import ebookstore.exception.DatabaseException;
+import ebookstore.exception.notfound.ClientNotFoundException;
 import ebookstore.exception.message.ClientErrorMessages;
 import ebookstore.mapper.ClientMapper;
 import ebookstore.model.Client;
 import ebookstore.repository.ClientRepository;
 import ebookstore.service.ClientService;
 import ebookstore.service.csv.writer.ClientCsvExporter;
-import ebookstore.util.HibernateUtil;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Реализация сервиса для работы с клиентами.
@@ -31,195 +29,100 @@ public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
     private final ClientCsvExporter clientCsvExporter;
-    private final HibernateUtil hibernateUtil;
 
     public ClientServiceImpl(ClientRepository clientRepository,
-                             ClientCsvExporter clientCsvExporter,
-                             HibernateUtil hibernateUtil) {
+                             ClientCsvExporter clientCsvExporter) {
         this.clientRepository = clientRepository;
         this.clientCsvExporter = clientCsvExporter;
-        this.hibernateUtil = hibernateUtil;
     }
 
     private static final Logger log = LoggerFactory.getLogger(ClientServiceImpl.class);
 
     @Override
+    @Transactional
     public ClientResponseDto saveClient(ClientCreateDto dto) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Client savedClient = clientRepository.saveClient(ClientMapper.mapDtoCreateToClient(dto));
+        ClientResponseDto response = ClientMapper.mapClientToResponseDto(savedClient);
+        log.info("Сохранили клиента {}", response);
 
-        try {
-            transaction = session.beginTransaction();
-            Client savedClient = clientRepository.saveClient(ClientMapper.mapDtoCreateToClient(dto));
-            transaction.commit();
-            return ClientMapper.mapClientToResponseDto(savedClient);
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при сохранении клиента: {}", dto, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при сохранении клиента: {}", dto, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка сохранения клиента", e);
-        }
+        return response;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<ClientResponseDto> getAllClients() {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Collection<Client> clients = clientRepository.getAllClients().values();
+        List<ClientResponseDto> response = clients.stream()
+                .map(ClientMapper::mapClientToResponseDto)
+                .toList();
+        log.info("Получили список клинтов в размере {}", response.size());
 
-        try {
-            transaction = session.beginTransaction();
-            Collection<Client> clients = clientRepository.getAllClients().values();
-            transaction.commit();
-            return clients.stream()
-                    .map(ClientMapper::mapClientToResponseDto)
-                    .toList();
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении всех клиентов", e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении всех клиентов", e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка получения клиентов", e);
-        }
+        return response;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Client getClientById(long clientId) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Client client = clientRepository.getClient(clientId)
+                .orElseThrow(() -> {
+                    log.error("Клиент не найден id={}", clientId);
+                    return new ClientNotFoundException(ClientErrorMessages.FIND_ERROR);
+                });
+        log.info("Получили клиента id = {}", client.getId());
 
-        try {
-            transaction = session.beginTransaction();
-
-            Client client = clientRepository.getClient(clientId)
-                    .orElseThrow(() -> {
-                        log.error("Клиент не найден id={}", clientId);
-                        return new ClientNotFoundException(ClientErrorMessages.FIND_ERROR);
-                    });
-
-            transaction.commit();
-            return client;
-        } catch (ClientNotFoundException e) {
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении клиента с id={}", clientId, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении клиента с id={}", clientId, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка получения клиента", e);
-        }
+        return client;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ClientResponseDto getClientDtoById(long clientId) {
         return ClientMapper.mapClientToResponseDto(getClientById(clientId));
     }
 
     @Override
+    @Transactional
     public ClientResponseDto updateClient(Client client) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Client existingClient = clientRepository.getClient(client.getId())
+                .orElseThrow(() -> {
+                    log.error("Клиент с id={} не найден для обновления", client.getId());
+                    return new ClientNotFoundException(ClientErrorMessages.FIND_ERROR);
+                });
 
-        try {
-            transaction = session.beginTransaction();
+        updateClientFields(existingClient, client);
+        Client updatedClient = clientRepository.updateClient(existingClient);
+        ClientResponseDto response = ClientMapper.mapClientToResponseDto(updatedClient);
+        log.info("Обновили клиента с id = {}", response.id());
 
-            Client existingClient = clientRepository.getClient(client.getId())
-                    .orElseThrow(() -> {
-                        log.error("Клиент с id={} не найден для обновления", client.getId());
-                        return new ClientNotFoundException(ClientErrorMessages.FIND_ERROR);
-                    });
-
-            updateClientFields(existingClient, client);
-
-            Client updatedClient = clientRepository.updateClient(existingClient);
-            transaction.commit();
-            return ClientMapper.mapClientToResponseDto(updatedClient);
-        } catch (ClientNotFoundException e) {
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при обновлении клиента: {}", client, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при обновлении клиента: {}", client, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка обновления клиента", e);
-        }
+        return response;
     }
 
     @Override
+    @Transactional
     public void deleteClientById(long clientId) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        clientRepository.getClient(clientId)
+                .orElseThrow(() -> {
+                    log.error("Клиент с id={} не найден для удаления", clientId);
+                    return new ClientNotFoundException(ClientErrorMessages.FIND_ERROR);
+                });
+        clientRepository.deleteClient(clientId);
 
-        try {
-            transaction = session.beginTransaction();
-
-            clientRepository.getClient(clientId)
-                    .orElseThrow(() -> {
-                        log.error("Клиент с id={} не найден для удаления", clientId);
-                        return new ClientNotFoundException(ClientErrorMessages.FIND_ERROR);
-                    });
-
-            clientRepository.deleteClient(clientId);
-            transaction.commit();
-        } catch (ClientNotFoundException e) {
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при удалении клиента с id={}", clientId, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при удалении клиента с id={}", clientId, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка удаления клиента", e);
-        }
+        log.info("Удалили клиента с id = {}", clientId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean checkClientIsExist(long clientId) {
+        boolean result = clientRepository.checkClientIsExist(clientId);
+        log.info("Проверка существования клиента с id {} = {}", clientId, result);
 
-        try {
-            boolean result = clientRepository.checkClientIsExist(clientId);
-            return result;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при проверке существования клиента с id={}", clientId, e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при проверке существования клиента с id={}", clientId, e);
-            throw new RuntimeException("Ошибка проверки существования клиента", e);
-        }
+        return result;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void exportClientsToCsv(String filePath) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
-
-        try {
-            transaction = session.beginTransaction();
-            Collection<Client> allClients = clientRepository.getAllClients().values();
-            transaction.commit();
-
-            clientCsvExporter.exportToCsv(allClients, filePath);
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при экспорте клиентов в CSV", e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при экспорте клиентов в CSV", e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка экспорта клиентов", e);
-        }
+        Collection<Client> allClients = clientRepository.getAllClients().values();
+        clientCsvExporter.exportToCsv(allClients, filePath);
     }
 
     private void updateClientFields(Client existingClient, Client newData) {
@@ -237,16 +140,6 @@ public class ClientServiceImpl implements ClientService {
         }
         if (newData.getPassword() != null) {
             existingClient.setPassword(newData.getPassword());
-        }
-    }
-
-    private void rollbackTransaction(Transaction transaction) {
-        if (transaction != null && transaction.isActive()) {
-            try {
-                transaction.rollback();
-            } catch (Exception rollbackEx) {
-                log.error("Ошибка при откате транзакции", rollbackEx);
-            }
         }
     }
 }

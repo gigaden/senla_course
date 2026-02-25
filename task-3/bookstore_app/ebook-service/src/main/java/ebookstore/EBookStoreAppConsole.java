@@ -1,6 +1,6 @@
 package ebookstore;
 
-import ebookstore.configuration.AppConfig;
+import ebookstore.configuration.ConsoleConfig;
 import ebookstore.console.ConsoleMenu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,13 +17,20 @@ public class EBookStoreAppConsole {
 
     /*
      * ТуДу:
+     * - в букконтроллере подумать как сделать один метод с фильтрацией, принимая разные параметры
+     * - сделать пагинацию для получения всех сущностей
+     * - добавить/изменить контроллер по изменению статуса книги
+     * - добавить дто для ClientController.updateClient, BookController.updateBook
+     * - добавить дот для Order
+     * - добавить проверку дат, где есть выборка по ним
+     *
      * - хорошенько пересмотреть транзакции, если будет можно, то попробовать spring transaction
      * - задокументировать больше
      * - переделать логику обработки и выброса исключений
      * - вернуться к первым тз, вкурить чего хотят от запросов и переделать нормально
      * */
     public static void main(String[] args) {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class)) {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ConsoleConfig.class)) {
             ConsoleMenu consoleMenu = context.getBean(ConsoleMenu.class);
             consoleMenu.start();
         } catch (Exception e) {

@@ -1,9 +1,9 @@
 package ebookstore.repository.implement.hiber;
 
 import ebookstore.exception.DatabaseException;
-import ebookstore.util.HibernateUtil;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,18 +16,16 @@ import java.util.List;
 public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     private final Class<T> type;
-    private static final Logger log = LoggerFactory.getLogger(BaseRepositoryHiber.class);
     @Autowired
-    private HibernateUtil hibernateUtil;
-
-
+    private SessionFactory sessionFactory;
+    private static final Logger log = LoggerFactory.getLogger(BaseRepositoryHiber.class);
     protected BaseRepositoryHiber(Class<T> type) {
         this.type = type;
     }
 
     protected T save(T entity) {
         try {
-            Session session = hibernateUtil.getCurrentSession();
+            Session session = sessionFactory.getCurrentSession();
             session.persist(entity);
             return entity;
         } catch (HibernateException e) {
@@ -38,7 +36,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     protected T update(T entity) {
         try {
-            Session session = hibernateUtil.getCurrentSession();
+            Session session = sessionFactory.getCurrentSession();
             return session.merge(entity);
         } catch (HibernateException e) {
             log.error("Ошибка БД при обновлении {}: {}", type.getSimpleName(), entity, e);
@@ -48,7 +46,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     protected void delete(PK id) {
         try {
-            Session session = hibernateUtil.getCurrentSession();
+            Session session = sessionFactory.getCurrentSession();
             T entity = session.find(type, id);
             if (entity != null) {
                 session.remove(entity);
@@ -62,7 +60,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
     protected List<T> findAll() {
         try {
             log.debug("Пытаюсь получить все записи {}", type.getSimpleName());
-            Session session = hibernateUtil.getCurrentSession();
+            Session session = sessionFactory.getCurrentSession();
             return session.createQuery("FROM " + type.getSimpleName(), type)
                     .getResultList();
         } catch (HibernateException e) {
@@ -73,7 +71,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     protected T find(PK id) {
         try {
-            Session session = hibernateUtil.getCurrentSession();
+            Session session = sessionFactory.getCurrentSession();
             return session.find(type, id);
         } catch (HibernateException e) {
             log.error("Ошибка поиска сущности {} с id: {}", type.getSimpleName(), id, e);
@@ -83,7 +81,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
 
     protected boolean exists(PK id) {
         try {
-            Session session = hibernateUtil.getCurrentSession();
+            Session session = sessionFactory.getCurrentSession();
             T entity = session.find(type, id);
             return entity != null;
         } catch (HibernateException e) {

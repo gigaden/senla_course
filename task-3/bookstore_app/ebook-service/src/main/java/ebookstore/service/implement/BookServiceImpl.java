@@ -3,8 +3,7 @@ package ebookstore.service.implement;
 import ebookstore.dto.book.BookCreateDto;
 import ebookstore.dto.book.BookDescriptionDto;
 import ebookstore.dto.book.BookResponseDto;
-import ebookstore.exception.BookNotFoundException;
-import ebookstore.exception.DatabaseException;
+import ebookstore.exception.notfound.BookNotFoundException;
 import ebookstore.exception.message.BookErrorMessages;
 import ebookstore.mapper.BookMapper;
 import ebookstore.model.Book;
@@ -16,14 +15,12 @@ import ebookstore.repository.OrderRepository;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.BookService;
 import ebookstore.service.csv.writer.BookCsvExporter;
-import ebookstore.util.HibernateUtil;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
@@ -51,302 +48,173 @@ public class BookServiceImpl implements BookService {
     private final OrderRepository orderRepository;
     private final BookCsvExporter bookCsvExporter;
     private final BookRequestService requestService;
-    private final HibernateUtil hibernateUtil;
 
     private static final Logger log = LoggerFactory.getLogger(BookServiceImpl.class);
 
     public BookServiceImpl(BookRepository bookRepository,
                            OrderRepository orderRepository,
                            BookCsvExporter bookCsvExporter,
-                           @Lazy BookRequestService requestService,
-                           HibernateUtil hibernateUtil) {
+                           @Lazy BookRequestService requestService) {
         this.bookRepository = bookRepository;
         this.orderRepository = orderRepository;
         this.bookCsvExporter = bookCsvExporter;
         this.requestService = requestService;
-        this.hibernateUtil = hibernateUtil;
     }
 
     @Override
+    @Transactional
     public BookResponseDto saveBook(BookCreateDto bookDto) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Book book = BookMapper.mapCreateDtoToBook(bookDto);
+        book.setStatus(BookStatus.AVAILABLE);
+        log.debug("Установлен статус AVAILABLE для новой книги: {}", book.getTitle());
 
-        try {
-            transaction = session.beginTransaction();
-            Book book = BookMapper.mapCreateDtoToBook(bookDto);
-            book.setStatus(BookStatus.AVAILABLE);
-            log.debug("Установлен статус AVAILABLE для новой книги: {}", book.getTitle());
+        Book newBook = bookRepository.saveBook(book);
 
-            Book newBook = bookRepository.saveBook(book);
-
-            if (requestService.requestIsOpenForBookWithId(book.getId())
+        if (requestService.requestIsOpenForBookWithId(book.getId())
                 && Boolean.TRUE.equals(markRequestCompleted)) {
-                requestService.closeRequestByBookId(book.getId());
-                log.info("Закрыт открытый запрос на книгу id={}", book.getId());
-            }
-
-            transaction.commit();
-            return BookMapper.mapBookToResponseDto(newBook);
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при сохранении книги: {}", bookDto, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при сохранении книги: {}", bookDto, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка сохранения книги", e);
+            requestService.closeRequestByBookId(book.getId());
+            log.info("Закрыт открытый запрос на книгу id={}", book.getId());
         }
+        BookResponseDto response = BookMapper.mapBookToResponseDto(newBook);
+        log.info("Сохранена книга {}", response);
+
+        return response;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Book> getAllBooks() {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Collection<Book> books = bookRepository.getAllBooks();
 
-        try {
-            transaction = session.beginTransaction();
-            Collection<Book> books = bookRepository.getAllBooks();
-            transaction.commit();
-
-            return List.copyOf(books);
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении всех книг", e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении всех книг", e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка получения книг", e);
-        }
+        return List.copyOf(books);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<BookResponseDto> getAllBooks(Comparator<Book> comparator) {
         List<Book> books = new ArrayList<>(getAllBooks());
         books.sort(comparator);
-        return books.stream().map(BookMapper::mapBookToResponseDto).toList();
+        Collection<BookResponseDto> response = books.stream().map(BookMapper::mapBookToResponseDto).toList();
+        log.info("Получены книги в количестве {}", response.size());
+
+        return response;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Book getBookById(long bookId) {
-        try {
-            return bookRepository.getBook(bookId)
-                    .orElseThrow(() -> {
-                        log.error("Книга с id={} не найдена", bookId);
-                        return new BookNotFoundException(BookErrorMessages.FIND_ERROR);
-                    });
-        } catch (BookNotFoundException e) {
-            throw e;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении книги с id={}", bookId, e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении книги с id={}", bookId, e);
-            throw new RuntimeException("Ошибка получения книги", e);
-        }
+        Book book = bookRepository.getBook(bookId)
+                .orElseThrow(() -> {
+                    log.error("Книга с id={} не найдена", bookId);
+                    return new BookNotFoundException(BookErrorMessages.FIND_ERROR);
+                });
+        log.info("Получена книга {}", book);
+
+        return book;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BookResponseDto getBookDtoById(long bookId) {
         return BookMapper.mapBookToResponseDto(getBookById(bookId));
     }
 
     @Override
+    @Transactional
     public BookResponseDto updateBook(Book book) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Book updatedBook = bookRepository.updateBook(book);
+        BookResponseDto response = BookMapper.mapBookToResponseDto(updatedBook);
+        log.info("Обновлена книга {}", response);
 
-        try {
-            transaction = session.beginTransaction();
-            Book updatedBook = bookRepository.updateBook(book);
-            transaction.commit();
-            return BookMapper.mapBookToResponseDto(updatedBook);
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при обновлении книги: {}", book, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при обновлении книги: {}", book, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка обновления книги", e);
-        }
+        return response;
     }
 
     @Override
+    @Transactional
     public void deleteBookById(long bookId) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
-
-        try {
-            transaction = session.beginTransaction();
-            bookRepository.deleteBook(bookId);
-            transaction.commit();
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при удалении книги с id={}", bookId, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при удалении книги с id={}", bookId, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка удаления книги", e);
-        }
+        bookRepository.deleteBook(bookId);
+        log.info("Книга с id = {} удалена", bookId);
     }
 
     @Override
+    @Transactional
     public void makeBookAbsent(long bookId) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Book book = getBookById(bookId);
+        book.setStatus(BookStatus.ABSENT);
+        bookRepository.updateBook(book);
 
-        try {
-            transaction = session.beginTransaction();
-
-            Book book = bookRepository.getBook(bookId)
-                    .orElseThrow(() -> {
-                        log.error("Книга с id={} не найдена", bookId);
-                        return new BookNotFoundException(BookErrorMessages.FIND_ERROR);
-                    });
-
-            book.setStatus(BookStatus.ABSENT);
-            bookRepository.updateBook(book);
-
-            transaction.commit();
-            log.info("Статус книги изменён на ABSENT, id={}", bookId);
-        } catch (BookNotFoundException e) {
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при изменении статуса книги с id={}", bookId, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при изменении статуса книги с id={}", bookId, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка изменения статуса книги", e);
-        }
+        log.info("Статус книги изменён на ABSENT, id={}", bookId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<BookResponseDto> getStaleBooks(Comparator<Book> comparator) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        if (monthQuantity == null) {
+            monthQuantity = DEFAULT_MONTH_QUANTITY;
+            log.debug("monthQuantity не задан, используем значение по умолчанию = {}", DEFAULT_MONTH_QUANTITY);
+        }
 
-        try {
-            transaction = session.beginTransaction();
+        LocalDateTime thresholdDate = LocalDateTime.now().minusMonths(monthQuantity);
 
-            if (monthQuantity == null) {
-                monthQuantity = DEFAULT_MONTH_QUANTITY;
-                log.debug("monthQuantity не задан, используем значение по умолчанию = {}", DEFAULT_MONTH_QUANTITY);
-            }
+        List<Book> staleBooks = new ArrayList<>();
+        Collection<Book> allBooks = bookRepository.getAllBooks();
+        Collection<Order> allOrders = orderRepository.getAllOrders();
 
-            LocalDateTime thresholdDate = LocalDateTime.now().minusMonths(monthQuantity);
+        for (Book book : allBooks) {
+            boolean hasRecentOrder = false;
 
-            List<Book> staleBooks = new ArrayList<>();
-            Collection<Book> allBooks = bookRepository.getAllBooks();
-            Collection<Order> allOrders = orderRepository.getAllOrders();
-
-            for (Book book : allBooks) {
-                boolean hasRecentOrder = false;
-
-                for (Order order : allOrders) {
-                    if (order.getBook().getId() == book.getId()
+            for (Order order : allOrders) {
+                if (order.getBook().getId() == book.getId()
                         && order.getOrderStatus() == OrderStatus.COMPLETED
                         && order.getCompletedOn() != null
                         && order.getCompletedOn().isAfter(thresholdDate.toLocalDate())) {
-                        hasRecentOrder = true;
-                        break;
-                    }
-                }
-
-                if (!hasRecentOrder) {
-                    staleBooks.add(book);
+                    hasRecentOrder = true;
+                    break;
                 }
             }
 
-            transaction.commit();
-            staleBooks.sort(comparator);
-            return staleBooks.stream()
-                    .map(BookMapper::mapBookToResponseDto)
-                    .toList();
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении залежавшихся книг", e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении залежавшихся книг", e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка при получении залежавшихся книг", e);
+            if (!hasRecentOrder) {
+                staleBooks.add(book);
+            }
         }
+        staleBooks.sort(comparator);
+        Collection<BookResponseDto> response = staleBooks.stream()
+                .map(BookMapper::mapBookToResponseDto)
+                .toList();
+        log.info("Получены залежавшиеся книги");
+
+        return response;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BookDescriptionDto getBookDescription(long bookId) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        Book book = getBookById(bookId);
+        log.info("Получено описание книги, id={}", bookId);
 
-        try {
-            transaction = session.beginTransaction();
-
-            Book book = getBookById(bookId);
-
-            transaction.commit();
-            log.info("Получено описание книги, id={}", bookId);
-
-            return BookMapper.mapToBookDescriptionDto(book);
-        } catch (BookNotFoundException e) {
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при получении описания книги с id={}", bookId, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при получении описания книги с id={}", bookId, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка получения описания книги", e);
-        }
+        return BookMapper.mapToBookDescriptionDto(book);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean checkBookIsExist(long bookId) {
-        Session session = hibernateUtil.getCurrentSession();
-        Transaction transaction = null;
+        boolean result = bookRepository.checkBookIsExist(bookId);
+        log.info("Результат проверки существования книги с id = {} {}", bookId, result);
 
-        try {
-            transaction = session.beginTransaction();
-            boolean result = bookRepository.checkBookIsExist(bookId);
-            transaction.commit();
-            return result;
-        } catch (DatabaseException e) {
-            log.error("Ошибка базы данных при проверке существования книги с id={}", bookId, e);
-            rollbackTransaction(transaction);
-            throw e;
-        } catch (Exception e) {
-            log.error("Неожиданная ошибка при проверке существования книги с id={}", bookId, e);
-            rollbackTransaction(transaction);
-            throw new RuntimeException("Ошибка проверки существования книги", e);
-        }
+        return result;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void exportBooksToCsv(String filePath) {
         Collection<Book> allBooks = getAllBooks();
         bookCsvExporter.exportToCsv(allBooks, filePath);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void importBooksFromCsv(String filePath) {
         Collection<Book> allBooks = getAllBooks();
         bookCsvExporter.exportToCsv(allBooks, filePath);
-    }
-
-    private void rollbackTransaction(Transaction transaction) {
-        if (transaction != null && transaction.isActive()) {
-            try {
-                transaction.rollback();
-            } catch (Exception rollbackEx) {
-                log.error("Ошибка при откате транзакции", rollbackEx);
-            }
-        }
     }
 }

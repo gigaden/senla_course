@@ -3,8 +3,8 @@ package ebookstore.repository.implement.hiber;
 import ebookstore.model.Order;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.repository.OrderRepository;
-import ebookstore.util.HibernateUtil;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
@@ -15,21 +15,21 @@ import java.util.Optional;
 @Primary
 public class OrderRepositoryHiber extends BaseRepositoryHiber<Order, Long> implements OrderRepository {
 
-    private final HibernateUtil hibernateUtil;
+    private final SessionFactory sessionFactory;
 
-    public OrderRepositoryHiber(HibernateUtil hibernateUtil) {
+    public OrderRepositoryHiber(SessionFactory sessionFactory) {
         super(Order.class);
-        this.hibernateUtil = hibernateUtil;
+        this.sessionFactory = sessionFactory;
     }
 
     @Override
     public Optional<Order> getOrderById(long orderId) {
-        Session session = hibernateUtil.getCurrentSession();
+        Session session = sessionFactory.getCurrentSession();
         Order order = session.createQuery(
                         "select o from Order o " +
-                        "left join fetch o.book " +
-                        "left join fetch o.client " +
-                        "where o.id = :id", Order.class)
+                                "left join fetch o.book " +
+                                "left join fetch o.client " +
+                                "where o.id = :id", Order.class)
                 .setParameter("id", orderId)
                 .uniqueResultOptional()
                 .orElse(null);
@@ -38,11 +38,11 @@ public class OrderRepositoryHiber extends BaseRepositoryHiber<Order, Long> imple
 
     @Override
     public Collection<Order> getAllOrders() {
-        Session session = hibernateUtil.getCurrentSession();
+        Session session = sessionFactory.getCurrentSession();
         return session.createQuery(
                         "select distinct o from Order o " +
-                        "left join fetch o.book " +
-                        "left join fetch o.client", Order.class)
+                                "left join fetch o.book " +
+                                "left join fetch o.client", Order.class)
                 .getResultList();
     }
 
