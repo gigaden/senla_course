@@ -30,8 +30,9 @@
         </createTable>
 
         <sql>
-            ALTER TABLE orders ADD CONSTRAINT ch_order_status
-                CHECK (order_status IN ('NEW', 'COMPLETED', 'CANCELED'));
+            ALTER TABLE orders
+                ADD CONSTRAINT ch_order_status
+                    CHECK (order_status IN ('NEW', 'COMPLETED', 'CANCELED'));
         </sql>
 
         <rollback>

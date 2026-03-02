@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -56,6 +57,11 @@ public class OrderRepositoryDao extends BaseRepositoryDao implements OrderReposi
     @Override
     public Collection<Order> getAllOrders() {
         return findAll(GET_ALL_QUERY, this::mapOrder);
+    }
+
+    @Override
+    public Collection<Order> getAllOrders(int page, int size, String sortBy) {
+        return List.of();
     }
 
     @Override

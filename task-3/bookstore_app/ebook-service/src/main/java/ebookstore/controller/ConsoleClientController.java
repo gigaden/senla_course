@@ -2,7 +2,7 @@ package ebookstore.controller;
 
 import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.dto.client.ClientResponseDto;
-import ebookstore.model.Client;
+import ebookstore.dto.client.ClientUpdateDto;
 import ebookstore.service.ClientService;
 import ebookstore.service.csv.reader.ClientCsvReader;
 import org.slf4j.Logger;
@@ -45,11 +45,11 @@ public class ConsoleClientController {
         log.info("Клиент получен с id={}", clientId);
     }
 
-    public void updateClient(Client client) {
-        log.info("Обновляем клиента с id={}", client.getId());
+    public void updateClient(ClientUpdateDto client) {
+        log.info("Обновляем клиента с id={}", client.id());
         ClientResponseDto clientResponseDto = clientService.updateClient(client);
         System.out.println(clientResponseDto);
-        log.info("Клиент обновлён с id={}", client.getId());
+        log.info("Клиент обновлён с id={}", client.id());
     }
 
     public void deleteClient(long clientId) {

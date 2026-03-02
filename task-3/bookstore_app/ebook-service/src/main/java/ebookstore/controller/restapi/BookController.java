@@ -3,7 +3,8 @@ package ebookstore.controller.restapi;
 import ebookstore.dto.book.BookCreateDto;
 import ebookstore.dto.book.BookDescriptionDto;
 import ebookstore.dto.book.BookResponseDto;
-import ebookstore.model.Book;
+import ebookstore.dto.book.BookUpdateDto;
+import ebookstore.model.enums.BookSortField;
 import ebookstore.model.enums.BookStatus;
 import ebookstore.service.BookService;
 import jakarta.validation.Valid;
@@ -19,10 +20,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
-import java.util.Comparator;
 
 /**
  * Контроллер обрабатывает обращение к книгам
@@ -36,6 +37,29 @@ public class BookController {
 
     public BookController(BookService bookService) {
         this.bookService = bookService;
+    }
+
+    /**
+     * Эндпоинт для получения всех книг с сортировкой и пагинацией
+     *
+     * @param page - страница, с которой будем получать книги
+     * @param size - количество записей
+     * @param sort - по какому значению сортируем
+     * @return - коллекция всех книг
+     */
+    @GetMapping
+    public ResponseEntity<Collection<BookResponseDto>> getAllBooks(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size,
+            @RequestParam(name = "sort", defaultValue = "TITLE") String sort) {
+
+        log.info("Получаем книги page={}, size={}, sort={}",
+                page, size, sort);
+
+        BookSortField sortField = BookSortField.fromString(sort);
+        Collection<BookResponseDto> books = bookService.getAllBooks(page, size, sortField);
+
+        return ResponseEntity.ok(books);
     }
 
     /**
@@ -69,13 +93,13 @@ public class BookController {
     /**
      * Эндпоинт для обновления книги
      *
-     * @param book - сущность книги для обновления
+     * @param dto - сущность книги для обновления
      * @return - обновлённая дто книги
      */
     @PutMapping
-    public ResponseEntity<BookResponseDto> updateBook(@RequestBody @Valid Book book) { // не забыть поменять на дто
-        log.info("Обновляем книгу с id={}", book.getId());
-        BookResponseDto response = bookService.updateBook(book);
+    public ResponseEntity<BookResponseDto> updateBook(@RequestBody @Valid BookUpdateDto dto) {
+        log.info("Обновляем книгу с id={}", dto.id());
+        BookResponseDto response = bookService.updateBook(dto);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -94,16 +118,18 @@ public class BookController {
     }
 
     /**
-     * Эндпоинт для изменения статуса книги на "отсутствует"
+     * Эндпоинт для изменения статуса книги
      *
      * @param bookId - id книги, которую нужно изменить
+     * @param status - новый статус для книги
      */
     @PatchMapping("/{bookId}")
-    public ResponseEntity<String> changeBookStatusToAbsent(@PathVariable(name = "bookId") long bookId) {
-        log.info("Меняем статус книги на ABSENT, id={}", bookId);
-        bookService.makeBookAbsent(bookId);
+    public ResponseEntity<String> changeBookStatus(@PathVariable(name = "bookId") long bookId,
+                                                   @RequestParam BookStatus status) {
+        log.info("Меняем статус книги на {}, id={}", status, bookId);
+        bookService.changeBookStatus(bookId, status);
 
-        return new ResponseEntity<>("Статус книги изменён", HttpStatus.OK);
+        return new ResponseEntity<>(String.format("Статус книги %s изменён %s", bookId, status), HttpStatus.OK);
     }
 
     /**
@@ -120,52 +146,15 @@ public class BookController {
     }
 
     /**
-     * Эндпоинт для получения всех книг по алфавиту
+     * Эндпоинт для получения всех залежавшихся книг
      *
-     * @return - коллекция всех книг по алфавиту
+     * @return - коллекция всех книг
      */
-    @GetMapping("/by_alphabet")
-    public ResponseEntity<Collection<BookResponseDto>> getAllBooksByAlphabet() {
-        log.info("Получаем все книги, отсортированные по алфавиту");
-        Collection<BookResponseDto> books = bookService.getAllBooks(Comparator.comparing(Book::getTitle));
+    @GetMapping("/stale")
+    public ResponseEntity<Collection<BookResponseDto>> getStaleBooks() {
+        log.info("Получаем залежавшиеся книги");
+        Collection<BookResponseDto> books = bookService.getStaleBooks();
 
-        return new ResponseEntity<>(books, HttpStatus.OK);
-    }
-
-    /**
-     * Эндпоинт для получения всех книг по дате публикации
-     *
-     * @return - коллекция всех книг по дате публикации
-     */
-    @GetMapping("/by_publish_date")
-    public ResponseEntity<Collection<BookResponseDto>> getAllBooksByDateOfPublish() {
-        log.info("Получаем все книги, отсортированные по дате издания");
-        Collection<BookResponseDto> books = bookService.getAllBooks(Comparator.comparing(Book::getDateOfPublication));
-
-        return new ResponseEntity<>(books, HttpStatus.OK);
-    }
-
-    @GetMapping("/by_price")
-    public ResponseEntity<Collection<BookResponseDto>> getAllBooksByPrice() {
-        log.info("Получаем все книги, отсортированные по цене");
-        Collection<BookResponseDto> books = bookService.getAllBooks(Comparator.comparing(Book::getPrice));
-
-        return new ResponseEntity<>(books, HttpStatus.OK);
-    }
-
-    @GetMapping("/by_availability")
-    public ResponseEntity<Collection<BookResponseDto>> getAllBooksByAvailability() {
-        log.info("Получаем все книги, отсортированные по наличию на складе");
-        Collection<BookResponseDto> books = bookService.getAllBooks((o1, o2) -> {
-            if (o1.getStatus() == BookStatus.AVAILABLE && o2.getStatus() != BookStatus.AVAILABLE) {
-                return -1;
-            } else if (o1.getStatus() != BookStatus.AVAILABLE && o2.getStatus() == BookStatus.AVAILABLE) {
-                return 1;
-            } else {
-                return 0;
-            }
-        });
-
-        return new ResponseEntity<>(books, HttpStatus.OK);
+        return ResponseEntity.ok(books);
     }
 }

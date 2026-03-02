@@ -10,6 +10,7 @@ import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -40,6 +41,11 @@ public class BookRepositoryDao extends BaseRepositoryDao implements BookReposito
     @Override
     public Collection<Book> getAllBooks() {
         return findAll(GET_ALL_QUERY, this::createBookFromResultSet);
+    }
+
+    @Override
+    public Collection<Book> getAllBooks(int page, int size, String sortBy) {
+        return List.of();
     }
 
     @Override

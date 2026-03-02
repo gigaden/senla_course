@@ -25,6 +25,7 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class ErrorHandler {
+
     private static final Logger log = LoggerFactory.getLogger(ErrorHandler.class);
 
     @ExceptionHandler({
@@ -55,7 +56,10 @@ public class ErrorHandler {
             MethodArgumentNotValidException.class,
             ValidationException.class,
             NumberFormatException.class,
-            HttpMessageNotReadableException.class})
+            HttpMessageNotReadableException.class,
+            IllegalArgumentException.class,
+            DatesValidationException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> invalidMethodArgument(Exception e, WebRequest request) {
         log.error("Ошибка  400 {}: {} в запросе {}",

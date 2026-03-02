@@ -9,6 +9,8 @@ public interface BookRepository {
 
     Collection<Book> getAllBooks();
 
+    Collection<Book> getAllBooks(int page, int size, String sortBy);
+
     Book saveBook(Book book);
 
     Optional<Book> getBook(long bookId);

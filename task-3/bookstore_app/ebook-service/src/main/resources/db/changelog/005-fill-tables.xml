@@ -12,7 +12,8 @@
         <insert tableName="books">
             <column name="title" value="Война и мир"/>
             <column name="author" value="Лев Толстой"/>
-            <column name="description" value="Роман-эпопея, описывающий русское общество в эпоху войн против Наполеона."/>
+            <column name="description"
+                    value="Роман-эпопея, описывающий русское общество в эпоху войн против Наполеона."/>
             <column name="date_of_publication" valueDate="1869-01-01"/>
             <column name="price" valueNumeric="500.00"/>
             <column name="status" value="AVAILABLE"/>
@@ -21,7 +22,8 @@
         <insert tableName="books">
             <column name="title" value="Преступление и наказание"/>
             <column name="author" value="Фёдор Достоевский"/>
-            <column name="description" value="Роман о психических страданиях и моральных дилеммах бывшего студента Родиона Раскольникова."/>
+            <column name="description"
+                    value="Роман о психических страданиях и моральных дилеммах бывшего студента Родиона Раскольникова."/>
             <column name="date_of_publication" valueDate="1866-01-01"/>
             <column name="price" valueNumeric="450.00"/>
             <column name="status" value="AVAILABLE"/>
@@ -30,7 +32,8 @@
         <insert tableName="books">
             <column name="title" value="Мастер и Маргарита"/>
             <column name="author" value="Михаил Булгаков"/>
-            <column name="description" value="Роман, сочетающий в себе элементы сатиры, фантастики и философской притчи."/>
+            <column name="description"
+                    value="Роман, сочетающий в себе элементы сатиры, фантастики и философской притчи."/>
             <column name="date_of_publication" valueDate="1967-01-01"/>
             <column name="price" valueNumeric="550.00"/>
             <column name="status" value="ABSENT"/>
@@ -39,7 +42,8 @@
         <insert tableName="books">
             <column name="title" value="1984"/>
             <column name="author" value="Джордж Оруэлл"/>
-            <column name="description" value="Антиутопический роман о тоталитарном обществе под постоянным наблюдением."/>
+            <column name="description"
+                    value="Антиутопический роман о тоталитарном обществе под постоянным наблюдением."/>
             <column name="date_of_publication" valueDate="1949-06-08"/>
             <column name="price" valueNumeric="400.00"/>
             <column name="status" value="AVAILABLE"/>
@@ -48,7 +52,8 @@
         <insert tableName="books">
             <column name="title" value="Улисс"/>
             <column name="author" value="Джеймс Джойс"/>
-            <column name="description" value="Модернистский роман, описывающий один день жизни Леопольда Блума в Дублине."/>
+            <column name="description"
+                    value="Модернистский роман, описывающий один день жизни Леопольда Блума в Дублине."/>
             <column name="date_of_publication" valueDate="1922-02-02"/>
             <column name="price" valueNumeric="600.00"/>
             <column name="status" value="AVAILABLE"/>
@@ -103,7 +108,8 @@
             <delete tableName="books">
                 <where>title IN ('Война и мир', 'Преступление и наказание', 'Мастер и Маргарита',
                     '1984', 'Улисс', 'Властелин колец', 'Гарри Поттер и философский камень',
-                    'Маленький принц', 'Алиса в Стране чудес', 'Шерлок Холмс')</where>
+                    'Маленький принц', 'Алиса в Стране чудес', 'Шерлок Холмс')
+                </where>
             </delete>
         </rollback>
     </changeSet>
@@ -196,7 +202,8 @@
                 <where>email IN ('ivanov@example.com', 'petrov@example.com', 'sergeev@example.com',
                     'sidorova@example.com', 'kuznetsova@example.com', 'popov@example.com',
                     'vasileva@example.com', 'smirnov@example.com', 'morozova@example.com',
-                    'novikov@example.com')</where>
+                    'novikov@example.com')
+                </where>
             </delete>
         </rollback>
     </changeSet>

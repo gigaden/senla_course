@@ -3,11 +3,14 @@ package ebookstore.service.implement;
 import ebookstore.dto.book.BookCreateDto;
 import ebookstore.dto.book.BookDescriptionDto;
 import ebookstore.dto.book.BookResponseDto;
-import ebookstore.exception.notfound.BookNotFoundException;
+import ebookstore.dto.book.BookUpdateDto;
 import ebookstore.exception.message.BookErrorMessages;
+import ebookstore.exception.message.OrderErrorMessages;
+import ebookstore.exception.notfound.BookNotFoundException;
 import ebookstore.mapper.BookMapper;
 import ebookstore.model.Book;
 import ebookstore.model.Order;
+import ebookstore.model.enums.BookSortField;
 import ebookstore.model.enums.BookStatus;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.repository.BookRepository;
@@ -71,7 +74,7 @@ public class BookServiceImpl implements BookService {
         Book newBook = bookRepository.saveBook(book);
 
         if (requestService.requestIsOpenForBookWithId(book.getId())
-                && Boolean.TRUE.equals(markRequestCompleted)) {
+            && Boolean.TRUE.equals(markRequestCompleted)) {
             requestService.closeRequestByBookId(book.getId());
             log.info("Закрыт открытый запрос на книгу id={}", book.getId());
         }
@@ -83,19 +86,17 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<Book> getAllBooks() {
-        Collection<Book> books = bookRepository.getAllBooks();
+    public Collection<BookResponseDto> getAllBooks(int page, int size, BookSortField sortField) {
 
-        return List.copyOf(books);
-    }
+        Collection<Book> books =
+                bookRepository.getAllBooks(page, size, sortField.getField());
 
-    @Override
-    @Transactional(readOnly = true)
-    public Collection<BookResponseDto> getAllBooks(Comparator<Book> comparator) {
-        List<Book> books = new ArrayList<>(getAllBooks());
-        books.sort(comparator);
-        Collection<BookResponseDto> response = books.stream().map(BookMapper::mapBookToResponseDto).toList();
-        log.info("Получены книги в количестве {}", response.size());
+        Collection<BookResponseDto> response = books.stream()
+                .map(BookMapper::mapBookToResponseDto)
+                .toList();
+
+        log.info("Получены книги page={}, size={}, sort={}",
+                page, size, sortField);
 
         return response;
     }
@@ -121,8 +122,16 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public BookResponseDto updateBook(Book book) {
-        Book updatedBook = bookRepository.updateBook(book);
+    public BookResponseDto updateBook(BookUpdateDto dto) {
+
+        Book existingBook = bookRepository.getBook(dto.id())
+                .orElseThrow(() -> {
+                    log.error("Заказ с id={} не найден для обновления", dto.id());
+                    return new BookNotFoundException(OrderErrorMessages.FIND_ERROR);
+                });
+
+        updateBookFields(existingBook, dto);
+        Book updatedBook = bookRepository.updateBook(existingBook);
         BookResponseDto response = BookMapper.mapBookToResponseDto(updatedBook);
         log.info("Обновлена книга {}", response);
 
@@ -138,17 +147,17 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public void makeBookAbsent(long bookId) {
+    public void changeBookStatus(long bookId, BookStatus status) {
         Book book = getBookById(bookId);
-        book.setStatus(BookStatus.ABSENT);
+        book.setStatus(status);
         bookRepository.updateBook(book);
 
-        log.info("Статус книги изменён на ABSENT, id={}", bookId);
+        log.info("Статус книги изменён на {}, id={}", status, bookId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<BookResponseDto> getStaleBooks(Comparator<Book> comparator) {
+    public Collection<BookResponseDto> getStaleBooks() {
         if (monthQuantity == null) {
             monthQuantity = DEFAULT_MONTH_QUANTITY;
             log.debug("monthQuantity не задан, используем значение по умолчанию = {}", DEFAULT_MONTH_QUANTITY);
@@ -165,9 +174,9 @@ public class BookServiceImpl implements BookService {
 
             for (Order order : allOrders) {
                 if (order.getBook().getId() == book.getId()
-                        && order.getOrderStatus() == OrderStatus.COMPLETED
-                        && order.getCompletedOn() != null
-                        && order.getCompletedOn().isAfter(thresholdDate.toLocalDate())) {
+                    && order.getOrderStatus() == OrderStatus.COMPLETED
+                    && order.getCompletedOn() != null
+                    && order.getCompletedOn().isAfter(thresholdDate.toLocalDate())) {
                     hasRecentOrder = true;
                     break;
                 }
@@ -177,7 +186,7 @@ public class BookServiceImpl implements BookService {
                 staleBooks.add(book);
             }
         }
-        staleBooks.sort(comparator);
+        staleBooks.sort(Comparator.comparing(Book::getTitle));
         Collection<BookResponseDto> response = staleBooks.stream()
                 .map(BookMapper::mapBookToResponseDto)
                 .toList();
@@ -207,14 +216,32 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional(readOnly = true)
     public void exportBooksToCsv(String filePath) {
-        Collection<Book> allBooks = getAllBooks();
+        Collection<Book> allBooks = bookRepository.getAllBooks();
         bookCsvExporter.exportToCsv(allBooks, filePath);
     }
 
     @Override
     @Transactional(readOnly = true)
     public void importBooksFromCsv(String filePath) {
-        Collection<Book> allBooks = getAllBooks();
+        Collection<Book> allBooks = bookRepository.getAllBooks();
         bookCsvExporter.exportToCsv(allBooks, filePath);
+    }
+
+    private void updateBookFields(Book book, BookUpdateDto dto) {
+        if (dto.title() != null) {
+            book.setTitle(dto.title());
+        }
+        if (dto.author() != null) {
+            book.setAuthor(dto.author());
+        }
+        if (dto.description() != null) {
+            book.setDescription(dto.description());
+        }
+        if (dto.date() != null) {
+            book.setDateOfPublication(dto.date());
+        }
+        if (dto.price() != null) {
+            book.setPrice(dto.price());
+        }
     }
 }

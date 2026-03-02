@@ -2,7 +2,7 @@ package ebookstore.controller.restapi;
 
 import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.dto.client.ClientResponseDto;
-import ebookstore.model.Client;
+import ebookstore.dto.client.ClientUpdateDto;
 import ebookstore.service.ClientService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -78,13 +78,13 @@ public class ClientController {
     /**
      * Эндпоинт для обновления данных клиента
      *
-     * @param client - дто для обновления клиента
+     * @param dto - дто для обновления клиента
      * @return обновлённый клиент
      */
     @PutMapping
-    public ResponseEntity<ClientResponseDto> updateClient(@RequestBody @Valid Client client) { // не забыть дто добавить
-        log.info("Обновление клиента с id={}", client.getId());
-        ClientResponseDto response = clientService.updateClient(client);
+    public ResponseEntity<ClientResponseDto> updateClient(@RequestBody @Valid ClientUpdateDto dto) { // не забыть дто добавить
+        log.info("Обновление клиента с id={}", dto.id());
+        ClientResponseDto response = clientService.updateClient(dto);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

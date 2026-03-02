@@ -5,10 +5,10 @@ import ebookstore.dto.bookrequest.BookRequestDto;
 import ebookstore.dto.bookrequest.RequestDto;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
+import ebookstore.model.enums.RequestSortField;
 import jakarta.validation.Valid;
 
 import java.util.Collection;
-import java.util.Comparator;
 
 public interface BookRequestService {
 
@@ -20,7 +20,7 @@ public interface BookRequestService {
 
     boolean requestIsOpenForBookWithId(long bookId);
 
-    Collection<RequestDto> getSortedRequest(Comparator<RequestDto> comparator);
+    Collection<RequestDto> getAll(int page, int size, RequestSortField sortField);
 
     boolean checkRequestIsExist(long requestId);
 

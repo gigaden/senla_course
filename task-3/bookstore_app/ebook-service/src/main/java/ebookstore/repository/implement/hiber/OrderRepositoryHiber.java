@@ -27,9 +27,9 @@ public class OrderRepositoryHiber extends BaseRepositoryHiber<Order, Long> imple
         Session session = sessionFactory.getCurrentSession();
         Order order = session.createQuery(
                         "select o from Order o " +
-                                "left join fetch o.book " +
-                                "left join fetch o.client " +
-                                "where o.id = :id", Order.class)
+                        "left join fetch o.book " +
+                        "left join fetch o.client " +
+                        "where o.id = :id", Order.class)
                 .setParameter("id", orderId)
                 .uniqueResultOptional()
                 .orElse(null);
@@ -41,8 +41,20 @@ public class OrderRepositoryHiber extends BaseRepositoryHiber<Order, Long> imple
         Session session = sessionFactory.getCurrentSession();
         return session.createQuery(
                         "select distinct o from Order o " +
-                                "left join fetch o.book " +
-                                "left join fetch o.client", Order.class)
+                        "left join fetch o.book " +
+                        "left join fetch o.client", Order.class)
+                .getResultList();
+    }
+
+    @Override
+    public Collection<Order> getAllOrders(int page, int size, String sortBy) {
+        Session session = sessionFactory.getCurrentSession();
+        return session.createQuery(
+                        "select distinct o from Order o " +
+                        "left join fetch o.book " +
+                        "left join fetch o.client ORDER BY " + sortBy, Order.class)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
                 .getResultList();
     }
 

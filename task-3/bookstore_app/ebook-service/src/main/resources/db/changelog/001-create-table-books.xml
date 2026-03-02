@@ -30,8 +30,10 @@
             </column>
         </createTable>
         <sql>
-            ALTER TABLE books ADD CONSTRAINT ch_book_price CHECK (price > 0);
-            ALTER TABLE books ADD CONSTRAINT ch_book_status CHECK (status IN ('AVAILABLE', 'ABSENT'));
+            ALTER TABLE books
+                ADD CONSTRAINT ch_book_price CHECK (price > 0);
+            ALTER TABLE books
+                ADD CONSTRAINT ch_book_status CHECK (status IN ('AVAILABLE', 'ABSENT'));
         </sql>
         <rollback>
             <dropTable tableName="books"/>

@@ -1,7 +1,7 @@
 package ebookstore.service.csv.reader;
 
 import ebookstore.dto.client.ClientCreateDto;
-import ebookstore.model.Client;
+import ebookstore.dto.client.ClientUpdateDto;
 import ebookstore.service.ClientService;
 import org.springframework.stereotype.Service;
 
@@ -65,8 +65,7 @@ public class ClientCsvReader {
                 String login = clientArr.get(4).trim();
                 String password = clientArr.get(5).trim();
 
-                Client client = new Client(name, surname, email, login, password);
-                client.setId(id);
+                ClientUpdateDto client = new ClientUpdateDto(id, name, surname, email, login, password);
 
                 if (clientService.checkClientIsExist(id)) {
                     clientService.updateClient(client);

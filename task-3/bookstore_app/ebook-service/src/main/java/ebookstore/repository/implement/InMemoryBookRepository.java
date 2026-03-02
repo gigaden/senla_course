@@ -8,6 +8,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,6 +29,11 @@ public class InMemoryBookRepository implements BookRepository, Serializable {
     @Override
     public Collection<Book> getAllBooks() {
         return books.values();
+    }
+
+    @Override
+    public Collection<Book> getAllBooks(int page, int size, String sortBy) {
+        return List.of();
     }
 
     @Override
