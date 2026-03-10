@@ -3,13 +3,14 @@ package ebookstore.service.implement;
 import ebookstore.dto.bookrequest.BookRequestCreateDto;
 import ebookstore.dto.bookrequest.BookRequestDto;
 import ebookstore.dto.bookrequest.RequestDto;
-import ebookstore.exception.notfound.RequestNotFoundException;
 import ebookstore.exception.message.RequestErrorMessages;
+import ebookstore.exception.notfound.RequestNotFoundException;
 import ebookstore.mapper.RequestMapper;
 import ebookstore.model.Book;
 import ebookstore.model.BookRequest;
 import ebookstore.model.enums.BookRequestStatus;
 import ebookstore.model.enums.BookStatus;
+import ebookstore.model.enums.RequestSortField;
 import ebookstore.repository.BookRequestRepository;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.BookService;
@@ -24,7 +25,6 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +119,7 @@ public class BookRequestServiceImpl implements BookRequestService {
 
         return allRequests.stream()
                 .anyMatch(r -> r.getBookId() == bookId &&
-                        r.getRequestStatus() == BookRequestStatus.OPENED);
+                               r.getRequestStatus() == BookRequestStatus.OPENED);
     }
 
     @Override
@@ -139,10 +139,10 @@ public class BookRequestServiceImpl implements BookRequestService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<RequestDto> getSortedRequest(Comparator<RequestDto> comparator) {
+    public Collection<RequestDto> getAll(int page, int size, RequestSortField sortField) {
         List<BookRequest> requests = new ArrayList<>(requestRepository.getAllRequests());
         List<RequestDto> dtos = makeRequestDto(requests);
-        dtos.sort(comparator);
+
         log.info("Получены отсортированные запросы");
 
         return dtos;

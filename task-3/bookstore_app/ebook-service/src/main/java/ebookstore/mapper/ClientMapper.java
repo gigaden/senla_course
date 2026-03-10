@@ -2,6 +2,7 @@ package ebookstore.mapper;
 
 import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.dto.client.ClientResponseDto;
+import ebookstore.dto.client.ClientUpdateDto;
 import ebookstore.model.Client;
 
 /**
@@ -33,6 +34,22 @@ public final class ClientMapper {
      * @return - болванку юзера
      */
     public static Client mapDtoCreateToClient(ClientCreateDto dto) {
+        return new Client(
+                dto.name(),
+                dto.surname(),
+                dto.email(),
+                dto.login(),
+                dto.password()
+        );
+    }
+
+    /**
+     * Метод мапит из дто обновления в клиента
+     *
+     * @param dto - dto юзера
+     * @return - клиент
+     */
+    public static Client mapClientUpdateToClient(ClientUpdateDto dto) {
         return new Client(
                 dto.name(),
                 dto.surname(),

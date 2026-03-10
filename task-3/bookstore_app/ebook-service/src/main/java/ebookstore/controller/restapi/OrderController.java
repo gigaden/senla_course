@@ -2,7 +2,10 @@ package ebookstore.controller.restapi;
 
 import ebookstore.dto.order.OrderCreateDto;
 import ebookstore.dto.order.OrderDetailsDto;
+import ebookstore.dto.order.OrderResponseDto;
+import ebookstore.dto.order.OrderUpdateDto;
 import ebookstore.model.Order;
+import ebookstore.model.enums.OrderSortField;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.service.OrderService;
 import jakarta.validation.Valid;
@@ -46,9 +49,9 @@ public class OrderController {
      * @return созданный заказ
      */
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody @Valid OrderCreateDto order) {
+    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody @Valid OrderCreateDto order) {
         log.info("Создание нового заказа");
-        Order response = orderService.createOrder(order);
+        OrderResponseDto response = orderService.createOrder(order);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -60,11 +63,11 @@ public class OrderController {
      * @return заказ
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrder(@PathVariable long id) {
+    public ResponseEntity<OrderResponseDto> getOrder(@PathVariable long id) {
         log.info("Получение заказа с id={}", id);
-        Order order = orderService.getOrderById(id);
+        OrderResponseDto response = orderService.getOrderById(id);
 
-        return new ResponseEntity<>(order, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     /**
@@ -88,9 +91,9 @@ public class OrderController {
      * @return обновлённый заказ
      */
     @PutMapping
-    public ResponseEntity<Order> updateOrder(@RequestBody @Valid Order order) {
-        log.info("Обновление заказа с id={}", order.getOrderId());
-        Order response = orderService.updateOrder(order);
+    public ResponseEntity<OrderResponseDto> updateOrder(@RequestBody @Valid OrderUpdateDto order) {
+        log.info("Обновление заказа с id={}", order.id());
+        OrderResponseDto response = orderService.updateOrder(order);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -124,49 +127,18 @@ public class OrderController {
     }
 
     /**
-     * Эндпоинт для получения всех заказов, отсортированных по дате завершения
+     * Эндпоинт для получения всех заказов
      *
      * @return коллекция заказов
      */
-    @GetMapping("/by_date")
-    public ResponseEntity<Collection<Order>> getAllOrdersByDate() {
-        log.info("Получение всех заказов, отсортированных по дате завершения");
-        Collection<Order> orders = orderService.getAllOrders(
-                Comparator.comparing(
-                        Order::getCompletedOn,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                )
-        );
-
-        return new ResponseEntity<>(orders, HttpStatus.OK);
-    }
-
-    /**
-     * Эндпоинт для получения всех заказов, отсортированных по цене книги
-     *
-     * @return коллекция заказов
-     */
-    @GetMapping("/by_price")
-    public ResponseEntity<Collection<Order>> getAllOrdersByPrice() {
-        log.info("Получение всех заказов, отсортированных по цене книги");
-        Collection<Order> orders = orderService.getAllOrders(
-                Comparator.comparingInt(o -> (int) o.getBook().getPrice())
-        );
-
-        return new ResponseEntity<>(orders, HttpStatus.OK);
-    }
-
-    /**
-     * Эндпоинт для получения всех заказов, отсортированных по статусу
-     *
-     * @return коллекция заказов
-     */
-    @GetMapping("/by_status")
-    public ResponseEntity<Collection<Order>> getAllOrdersByStatus() {
-        log.info("Получение всех заказов, отсортированных по статусу");
-        Collection<Order> orders = orderService.getAllOrders(
-                Comparator.comparing(Order::getOrderStatus)
-        );
+    @GetMapping
+    public ResponseEntity<Collection<OrderResponseDto>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "DATE") String sort) {
+        log.info("Получаем заказы page={}, size={}, sort={}", page, size, sort);
+        OrderSortField sortField = OrderSortField.fromString(sort);
+        Collection<OrderResponseDto> orders = orderService.getAllOrders(page, size, sortField);
 
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
@@ -180,12 +152,12 @@ public class OrderController {
      * @return коллекция выполненных заказов
      */
     @GetMapping("/completed")
-    public ResponseEntity<Collection<Order>> getCompletedOrders(
+    public ResponseEntity<Collection<OrderResponseDto>> getCompletedOrders(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
             @RequestParam(defaultValue = "date") String sort) {
         log.info("Получение выполненных заказов за период {} - {}, сортировка по {}", start, end, sort);
-        Collection<Order> orders = orderService.getCompletedOrdersInPeriod(
+        Collection<OrderResponseDto> orders = orderService.getCompletedOrdersInPeriod(
                 start,
                 end,
                 Comparator.comparing(

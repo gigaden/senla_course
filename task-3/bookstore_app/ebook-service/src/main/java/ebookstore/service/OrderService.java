@@ -2,9 +2,11 @@ package ebookstore.service;
 
 import ebookstore.dto.order.OrderCreateDto;
 import ebookstore.dto.order.OrderDetailsDto;
+import ebookstore.dto.order.OrderResponseDto;
+import ebookstore.dto.order.OrderUpdateDto;
 import ebookstore.model.Order;
+import ebookstore.model.enums.OrderSortField;
 import ebookstore.model.enums.OrderStatus;
-import jakarta.validation.Valid;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -12,19 +14,17 @@ import java.util.Comparator;
 
 public interface OrderService {
 
-    Order createOrder(@Valid OrderCreateDto dto);
+    OrderResponseDto createOrder(OrderCreateDto dto);
 
-    Order getOrderById(long orderId);
+    OrderResponseDto getOrderById(long orderId);
 
-    Collection<Order> getAllOrders();
-
-    Collection<Order> getAllOrders(Comparator<Order> comparator);
+    Collection<OrderResponseDto> getAllOrders(int page, int size, OrderSortField sortBy);
 
     void changeStatus(long orderId, OrderStatus orderStatus);
 
     void cancelOrder(long orderId);
 
-    Collection<Order> getCompletedOrdersInPeriod(LocalDate start, LocalDate end, Comparator<Order> comparator);
+    Collection<OrderResponseDto> getCompletedOrdersInPeriod(LocalDate start, LocalDate end, Comparator<Order> comparator);
 
     double getEarnedAmountInPeriod(LocalDate start, LocalDate end);
 
@@ -34,7 +34,7 @@ public interface OrderService {
 
     boolean checkOrderIsExist(long orderId);
 
-    Order updateOrder(Order order);
+    OrderResponseDto updateOrder(OrderUpdateDto order);
 
     void exportOrdersToCsv(String filePath);
 }

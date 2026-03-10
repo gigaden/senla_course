@@ -3,16 +3,21 @@ package ebookstore.service.implement;
 import ebookstore.dto.bookrequest.BookRequestCreateDto;
 import ebookstore.dto.order.OrderCreateDto;
 import ebookstore.dto.order.OrderDetailsDto;
-import ebookstore.exception.notfound.OrderNotFoundException;
+import ebookstore.dto.order.OrderResponseDto;
+import ebookstore.dto.order.OrderUpdateDto;
+import ebookstore.exception.DatesValidationException;
 import ebookstore.exception.message.OrderErrorMessages;
+import ebookstore.exception.notfound.OrderNotFoundException;
 import ebookstore.mapper.OrderMapper;
 import ebookstore.model.Book;
 import ebookstore.model.Client;
 import ebookstore.model.Order;
 import ebookstore.model.enums.BookStatus;
+import ebookstore.model.enums.OrderSortField;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.repository.OrderRepository;
 import ebookstore.service.BookRequestService;
+import ebookstore.service.BookService;
 import ebookstore.service.ClientService;
 import ebookstore.service.OrderService;
 import ebookstore.service.csv.writer.OrderCsvExporter;
@@ -23,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -35,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final ClientService clientService;
     private final BookRequestService requestService;
+    private final BookService bookService;
     private final OrderCsvExporter orderCsvExporter;
 
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
@@ -42,54 +47,49 @@ public class OrderServiceImpl implements OrderService {
     public OrderServiceImpl(OrderRepository orderRepository,
                             ClientService clientService,
                             BookRequestService requestService,
-                            OrderCsvExporter orderCsvExporter) {
+                            OrderCsvExporter orderCsvExporter,
+                            BookService bookService) {
         this.orderRepository = orderRepository;
         this.clientService = clientService;
         this.requestService = requestService;
         this.orderCsvExporter = orderCsvExporter;
+        this.bookService = bookService;
     }
 
     @Override
     @Transactional
-    public Order createOrder(OrderCreateDto dto) {
+    public OrderResponseDto createOrder(OrderCreateDto dto) {
         clientService.checkClientIsExist(dto.client().getId());
         Order newOrder = orderRepository.createOrder(OrderMapper.mapOrderDtoToOrder(dto));
         createRequestIfBookIsAbsent(newOrder);
+        OrderResponseDto responseDto = OrderMapper.mapOrderToResponseDto(newOrder);
         log.info("Создан новый заказ {}", newOrder);
 
-        return newOrder;
+        return responseDto;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Order getOrderById(long orderId) {
+    public OrderResponseDto getOrderById(long orderId) {
         Order order = orderRepository.getOrderById(orderId)
                 .orElseThrow(() -> {
                     log.error("Заказ с id={} не найден", orderId);
                     return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
                 });
+        OrderResponseDto responseDto = OrderMapper.mapOrderToResponseDto(order);
         log.info("Получен заказ с id = {}", orderId);
 
-        return order;
+        return responseDto;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<Order> getAllOrders() {
-        Collection<Order> orders = orderRepository.getAllOrders();
-        List<Order> response = List.copyOf(orders);
+    public Collection<OrderResponseDto> getAllOrders(int page, int size, OrderSortField sortBy) {
+        Collection<Order> orders = orderRepository.getAllOrders(page, size, sortBy.getField());
+        List<OrderResponseDto> response = orders.stream().map(OrderMapper::mapOrderToResponseDto).toList();
         log.info("Получен список заказов в количестве {}", orders.size());
 
         return response;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Collection<Order> getAllOrders(Comparator<Order> comparator) {
-        List<Order> orders = new ArrayList<>(orderRepository.getAllOrders());
-        orders.sort(comparator);
-
-        return List.copyOf(orders);
     }
 
     @Override
@@ -120,18 +120,20 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<Order> getCompletedOrdersInPeriod(
+    public Collection<OrderResponseDto> getCompletedOrdersInPeriod(
             LocalDate start,
             LocalDate end,
             Comparator<Order> comparator
     ) {
+        checkDates(start, end);
         Collection<Order> orders = orderRepository.getAllOrders();
-        List<Order> response = orders.stream()
+        List<OrderResponseDto> response = orders.stream()
                 .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
                 .filter(o -> o.getCompletedOn() != null)
                 .filter(o -> !o.getCompletedOn().isBefore(start))
                 .filter(o -> !o.getCompletedOn().isAfter(end))
                 .sorted(comparator)
+                .map(OrderMapper::mapOrderToResponseDto)
                 .toList();
         log.info("Получена коллекция завершённых заказов {}", response.size());
 
@@ -141,6 +143,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public double getEarnedAmountInPeriod(LocalDate start, LocalDate end) {
+        checkDates(start, end);
         Collection<Order> orders = orderRepository.getAllOrders();
         double response = orders.stream()
                 .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
@@ -157,6 +160,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public int getCompletedOrdersCountInPeriod(LocalDate start, LocalDate end) {
+        checkDates(start, end);
         Collection<Order> orders = orderRepository.getAllOrders();
         int response = (int) orders.stream()
                 .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
@@ -197,18 +201,19 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order updateOrder(Order order) {
-        Order existingOrder = orderRepository.getOrderById(order.getOrderId())
+    public OrderResponseDto updateOrder(OrderUpdateDto dto) {
+        Order existingOrder = orderRepository.getOrderById(dto.id())
                 .orElseThrow(() -> {
-                    log.error("Заказ с id={} не найден для обновления", order.getOrderId());
+                    log.error("Заказ с id={} не найден для обновления", dto.id());
                     return new OrderNotFoundException(OrderErrorMessages.FIND_ERROR);
                 });
 
-        updateOrderFields(existingOrder, order);
+        updateOrderFields(existingOrder, dto);
         Order updatedOrder = orderRepository.updateOrder(existingOrder);
-        log.info("Заказ обновлён {}", order);
+        OrderResponseDto responseDto = OrderMapper.mapOrderToResponseDto(updatedOrder);
+        log.info("Заказ обновлён {}", dto);
 
-        return updatedOrder;
+        return responseDto;
     }
 
     @Override
@@ -236,21 +241,27 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private void updateOrderFields(Order existingOrder, Order newData) {
-        if (newData.getClient() != null) {
-            existingOrder.setClient(newData.getClient());
+    private void updateOrderFields(Order existingOrder, OrderUpdateDto dto) {
+        if (dto.clientId() != null) {
+            Client client = clientService.getClientById(dto.clientId());
+            existingOrder.setClient(client);
         }
-        if (newData.getBook() != null) {
-            existingOrder.setBook(newData.getBook());
+        if (dto.bookId() != null) {
+            Book book = bookService.getBookById(dto.bookId());
+            existingOrder.setBook(book);
         }
-        if (newData.getOrderStatus() != null) {
-            existingOrder.setOrderStatus(newData.getOrderStatus());
+        if (dto.status() != null) {
+            existingOrder.setOrderStatus(dto.status());
         }
-        if (newData.getCreatedOn() != null) {
-            existingOrder.setCreatedOn(newData.getCreatedOn());
-        }
-        if (newData.getCompletedOn() != null) {
-            existingOrder.setCompletedOn(newData.getCompletedOn());
+    }
+
+    /**
+     * Метод проверяет корректность двух дат
+     */
+    private void checkDates(LocalDate start, LocalDate end) {
+        if (start.isAfter(end)) {
+            log.error("Дата начала {} позже окончания {}", start, end);
+            throw new DatesValidationException("Дата начала не может быть позже окончания");
         }
     }
 }

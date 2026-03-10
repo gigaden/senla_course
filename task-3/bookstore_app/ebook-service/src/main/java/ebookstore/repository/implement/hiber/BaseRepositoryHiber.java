@@ -19,6 +19,7 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
     @Autowired
     private SessionFactory sessionFactory;
     private static final Logger log = LoggerFactory.getLogger(BaseRepositoryHiber.class);
+
     protected BaseRepositoryHiber(Class<T> type) {
         this.type = type;
     }
@@ -65,6 +66,22 @@ public abstract class BaseRepositoryHiber<T, PK extends Serializable> {
                     .getResultList();
         } catch (HibernateException e) {
             log.error("Ошибка БД при получении записей {}", type.getSimpleName(), e);
+            throw new DatabaseException("Ошибка получения списка " + type.getSimpleName() + " " + e);
+        }
+    }
+
+    protected List<T> findAll(int page, int size, String sortBy) {
+        try {
+            Session session = sessionFactory.getCurrentSession();
+
+            return session.createQuery(
+                            "FROM " + type.getSimpleName() + " ORDER BY " + sortBy,
+                            type)
+                    .setFirstResult(page * size)
+                    .setMaxResults(size)
+                    .getResultList();
+        } catch (HibernateException e) {
+            log.error("Ошибка получения списка {} с пагинацией", type.getSimpleName(), e);
             throw new DatabaseException("Ошибка получения списка " + type.getSimpleName() + " " + e);
         }
     }

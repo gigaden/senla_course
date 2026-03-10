@@ -12,6 +12,8 @@ public interface OrderRepository {
 
     Collection<Order> getAllOrders();
 
+    Collection<Order> getAllOrders(int page, int size, String sortBy);
+
     Order createOrder(Order order);
 
     void changeOrderStatus(long orderId, OrderStatus orderStatus);

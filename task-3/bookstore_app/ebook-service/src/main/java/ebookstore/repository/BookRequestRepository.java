@@ -12,6 +12,8 @@ public interface BookRequestRepository {
 
     Collection<BookRequest> getAllRequests();
 
+    Collection<BookRequest> getAllRequests(int page, int size, String sortBy);
+
     BookRequest saveRequest(BookRequest request);
 
     void changeRequestStatus(long requestId, BookRequestStatus status);

@@ -1,6 +1,7 @@
 package ebookstore.service.csv.reader;
 
 import ebookstore.dto.book.BookCreateDto;
+import ebookstore.dto.book.BookUpdateDto;
 import ebookstore.model.Book;
 import ebookstore.model.enums.BookStatus;
 import ebookstore.service.BookService;
@@ -73,7 +74,12 @@ public class BookCsvReader {
                 book.setStatus(status);
 
                 if (bookService.checkBookIsExist(id)) {
-                    bookService.updateBook(book);
+                    bookService.updateBook(new BookUpdateDto(id,
+                            title,
+                            author,
+                            description,
+                            dateOfPublication,
+                            price));
                     System.out.println("Обновлена книга: " + title);
                 } else {
                     bookService.saveBook(new BookCreateDto(book.getTitle(),

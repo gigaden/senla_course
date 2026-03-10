@@ -28,8 +28,8 @@
     </properties>
 
     <modules>
-<!--        <module>config-module</module>-->
-<!--        <module>di-module</module>-->
+        <!--        <module>config-module</module>-->
+        <!--        <module>di-module</module>-->
         <module>ebook-service</module>
     </modules>
 

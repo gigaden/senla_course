@@ -28,6 +28,11 @@ public class BookRequestRepositoryHiber extends BaseRepositoryHiber<BookRequest,
     }
 
     @Override
+    public Collection<BookRequest> getAllRequests(int page, int size, String sortBy) {
+        return findAll(page, size, sortBy);
+    }
+
+    @Override
     public BookRequest saveRequest(BookRequest request) {
         return save(request);
     }

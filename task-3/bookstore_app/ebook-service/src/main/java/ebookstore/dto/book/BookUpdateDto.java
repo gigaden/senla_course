@@ -8,9 +8,11 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 /**
- * Дто для создания книги
+ * Дто для обновления книги
  */
-public record BookCreateDto(@NotBlank(message = "Название обязательно для заполнения")
+public record BookUpdateDto(@NotNull(message = "Укажите id книги")
+                            Long id,
+                            @NotBlank(message = "Название обязательно для заполнения")
                             @Size(min = 1, max = 256, message = "Название должно быть от 1 до 1024 символов")
                             String title,
 

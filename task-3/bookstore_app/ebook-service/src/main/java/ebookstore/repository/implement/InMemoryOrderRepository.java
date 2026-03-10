@@ -9,6 +9,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,6 +35,11 @@ public class InMemoryOrderRepository implements OrderRepository, Serializable {
     @Override
     public Collection<Order> getAllOrders() {
         return orders.values();
+    }
+
+    @Override
+    public Collection<Order> getAllOrders(int page, int size, String sortBy) {
+        return List.of();
     }
 
     @Override

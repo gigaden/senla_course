@@ -22,6 +22,11 @@ public class BookRepositoryHiber extends BaseRepositoryHiber<Book, Long> impleme
     }
 
     @Override
+    public Collection<Book> getAllBooks(int page, int size, String sortBy) {
+        return findAll(page, size, sortBy);
+    }
+
+    @Override
     public Book saveBook(Book book) {
         return save(book);
     }

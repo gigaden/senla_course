@@ -2,8 +2,9 @@ package ebookstore.service.implement;
 
 import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.dto.client.ClientResponseDto;
-import ebookstore.exception.notfound.ClientNotFoundException;
+import ebookstore.dto.client.ClientUpdateDto;
 import ebookstore.exception.message.ClientErrorMessages;
+import ebookstore.exception.notfound.ClientNotFoundException;
 import ebookstore.mapper.ClientMapper;
 import ebookstore.model.Client;
 import ebookstore.repository.ClientRepository;
@@ -81,14 +82,15 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     @Transactional
-    public ClientResponseDto updateClient(Client client) {
-        Client existingClient = clientRepository.getClient(client.getId())
+    public ClientResponseDto updateClient(ClientUpdateDto dto) {
+        Client existingClient = clientRepository.getClient(dto.id())
                 .orElseThrow(() -> {
-                    log.error("Клиент с id={} не найден для обновления", client.getId());
+                    log.error("Клиент с id={} не найден для обновления", dto.id());
                     return new ClientNotFoundException(ClientErrorMessages.FIND_ERROR);
                 });
 
-        updateClientFields(existingClient, client);
+
+        updateClientFields(existingClient, ClientMapper.mapClientUpdateToClient(dto));
         Client updatedClient = clientRepository.updateClient(existingClient);
         ClientResponseDto response = ClientMapper.mapClientToResponseDto(updatedClient);
         log.info("Обновили клиента с id = {}", response.id());

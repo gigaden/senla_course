@@ -2,14 +2,14 @@ package ebookstore.service;
 
 import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.dto.client.ClientResponseDto;
+import ebookstore.dto.client.ClientUpdateDto;
 import ebookstore.model.Client;
-import jakarta.validation.Valid;
 
 import java.util.Collection;
 
 public interface ClientService {
 
-    ClientResponseDto saveClient(@Valid ClientCreateDto client);
+    ClientResponseDto saveClient(ClientCreateDto client);
 
     Collection<ClientResponseDto> getAllClients();
 
@@ -17,7 +17,7 @@ public interface ClientService {
 
     ClientResponseDto getClientDtoById(long clientId);
 
-    ClientResponseDto updateClient(Client client);
+    ClientResponseDto updateClient(ClientUpdateDto dto);
 
     void deleteClientById(long clientId);
 

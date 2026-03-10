@@ -13,3 +13,28 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - ebook-network
+
+  app:
+    build:
+      context: .
+      dockerfile: ebook-service/Dockerfile
+    container_name: ebook-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres-senla:5432/bookstore
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - ebook-network
+
+networks:
+  ebook-network:
+    driver: bridge

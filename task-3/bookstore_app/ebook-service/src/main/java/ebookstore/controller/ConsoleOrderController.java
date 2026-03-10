@@ -2,7 +2,9 @@ package ebookstore.controller;
 
 import ebookstore.dto.order.OrderCreateDto;
 import ebookstore.dto.order.OrderDetailsDto;
+import ebookstore.dto.order.OrderResponseDto;
 import ebookstore.model.Order;
+import ebookstore.model.enums.OrderSortField;
 import ebookstore.model.enums.OrderStatus;
 import ebookstore.service.OrderService;
 import ebookstore.service.csv.reader.OrderCsvReader;
@@ -41,28 +43,19 @@ public class ConsoleOrderController {
 
     public void getAllOrdersByDateOfCompleting() {
         log.info("Получаем заказы, отсортированные по дате завершения");
-        Collection<Order> orders = orderService.getAllOrders(
-                Comparator.comparing(
-                        Order::getCompletedOn,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                )
-        );
+        Collection<OrderResponseDto> orders = orderService.getAllOrders(0, 10, OrderSortField.DATE);
         log.info("Получено заказов: {}", orders.size());
     }
 
     public void getAllOrdersByPrice() {
         log.info("Получаем заказы, отсортированные по цене");
-        Collection<Order> orders = orderService.getAllOrders(
-                Comparator.comparingInt(o -> (int) o.getBook().getPrice())
-        );
+        Collection<OrderResponseDto> orders = orderService.getAllOrders(0, 10, OrderSortField.PRICE);
         log.info("Получено заказов: {}", orders.size());
     }
 
     public void getAllOrdersByStatus() {
         log.info("Получаем заказы, отсортированные по статусу");
-        Collection<Order> orders = orderService.getAllOrders(
-                Comparator.comparing(Order::getOrderStatus)
-        );
+        Collection<OrderResponseDto> orders = orderService.getAllOrders(0, 10, OrderSortField.STATUS);
         log.info("Получено заказов: {}", orders.size());
     }
 
@@ -80,7 +73,7 @@ public class ConsoleOrderController {
 
     public void getCompletedOrdersByDate(LocalDate start, LocalDate end) {
         log.info("Получаем выполненные заказы за период {} - {}, сортировка по дате", start, end);
-        Collection<Order> orders = orderService.getCompletedOrdersInPeriod(
+        Collection<OrderResponseDto> orders = orderService.getCompletedOrdersInPeriod(
                 start,
                 end,
                 Comparator.comparing(
@@ -93,7 +86,7 @@ public class ConsoleOrderController {
 
     public void getCompletedOrdersByPrice(LocalDate start, LocalDate end) {
         log.info("Получаем выполненные заказы за период {} - {}, сортировка по цене", start, end);
-        Collection<Order> orders = orderService.getCompletedOrdersInPeriod(
+        Collection<OrderResponseDto> orders = orderService.getCompletedOrdersInPeriod(
                 start,
                 end,
                 Comparator.comparingInt(o -> (int) o.getBook().getPrice())

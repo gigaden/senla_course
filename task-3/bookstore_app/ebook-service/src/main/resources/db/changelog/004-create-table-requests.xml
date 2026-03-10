@@ -27,8 +27,9 @@
         </createTable>
 
         <sql>
-            ALTER TABLE requests ADD CONSTRAINT ch_request_status
-                CHECK (request_status IN ('OPENED', 'CLOSED'));
+            ALTER TABLE requests
+                ADD CONSTRAINT ch_request_status
+                    CHECK (request_status IN ('OPENED', 'CLOSED'));
         </sql>
 
         <rollback>

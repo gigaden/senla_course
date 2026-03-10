@@ -4,6 +4,7 @@ import ebookstore.dto.bookrequest.BookRequestCreateDto;
 import ebookstore.dto.bookrequest.BookRequestDto;
 import ebookstore.dto.bookrequest.RequestDto;
 import ebookstore.model.enums.BookRequestStatus;
+import ebookstore.model.enums.RequestSortField;
 import ebookstore.service.BookRequestService;
 import ebookstore.service.csv.reader.BookRequestCsvReader;
 import org.slf4j.Logger;
@@ -11,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -52,7 +52,7 @@ public class ConsoleBookRequestController {
     public void getAllBookRequestByCountOfRequest() {
         log.info("Получаем запросы, отсортированные по количеству запросов");
         Collection<RequestDto> requests = requestService
-                .getSortedRequest(Comparator.comparing(RequestDto::requestCount).reversed());
+                .getAll(0, 10, RequestSortField.COUNT);
         System.out.println(requests);
         log.info("Получено запросов: {}", requests.size());
     }
@@ -60,7 +60,7 @@ public class ConsoleBookRequestController {
     public void getAllBookRequestByTitleOfBookByAlphabet() {
         log.info("Получаем запросы, отсортированные по названию книги");
         Collection<RequestDto> requests = requestService
-                .getSortedRequest(Comparator.comparing(RequestDto::bookTitle));
+                .getAll(0, 10, RequestSortField.TITLE);
         System.out.println(requests);
         log.info("Получено сортированных запросов: {}", requests.size());
     }

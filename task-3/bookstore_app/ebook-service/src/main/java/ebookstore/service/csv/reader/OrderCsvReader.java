@@ -1,6 +1,7 @@
 package ebookstore.service.csv.reader;
 
 import ebookstore.dto.order.OrderCreateDto;
+import ebookstore.dto.order.OrderUpdateDto;
 import ebookstore.model.Book;
 import ebookstore.model.Client;
 import ebookstore.model.Order;
@@ -87,7 +88,7 @@ public class OrderCsvReader {
                 order.setOrderStatus(orderStatus);
 
                 if (orderService.checkOrderIsExist(id)) {
-                    orderService.updateOrder(order);
+                    orderService.updateOrder(new OrderUpdateDto(id, bookId, clientId, orderStatus));
                     System.out.println("Обновлен заказ: " + id);
                 } else {
                     orderService.createOrder(new OrderCreateDto(book, client));

@@ -3,7 +3,8 @@ package ebookstore.controller;
 import ebookstore.dto.book.BookCreateDto;
 import ebookstore.dto.book.BookDescriptionDto;
 import ebookstore.dto.book.BookResponseDto;
-import ebookstore.model.Book;
+import ebookstore.dto.book.BookUpdateDto;
+import ebookstore.model.enums.BookSortField;
 import ebookstore.model.enums.BookStatus;
 import ebookstore.service.BookService;
 import ebookstore.service.csv.reader.BookCsvReader;
@@ -12,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -39,38 +39,27 @@ public class ConsoleBookController {
 
     public void getAllBooksByAlphabet() {
         log.info("Получаем все книги, отсортированные по алфавиту");
-        Collection<BookResponseDto> books = bookService.getAllBooks(Comparator.comparing(Book::getTitle));
+        Collection<BookResponseDto> books = bookService.getAllBooks(0, 10, BookSortField.TITLE);
         System.out.println(books);
         log.info("Получено книг по алфавиту: {}", books.size());
     }
 
     public void getAllBooksByDateOfPublish() {
         log.info("Получаем все книги, отсортированные по дате издания");
-        Collection<BookResponseDto> books = bookService.getAllBooks(Comparator.comparing(Book::getDateOfPublication));
+        Collection<BookResponseDto> books = bookService.getAllBooks(0, 10, BookSortField.DATE);
         log.info("Получено книг по дате издания: {}", books.size());
     }
 
     public void getAllBooksByPrice() {
         log.info("Получаем все книги, отсортированные по цене");
-        Collection<BookResponseDto> books = bookService.getAllBooks(Comparator.comparing(Book::getPrice));
+        Collection<BookResponseDto> books = bookService.getAllBooks(0, 10, BookSortField.PRICE);
         System.out.println(books);
         log.info("Получено книг по цене: {}", books.size());
     }
 
     public void getAllBooksByAvailability() {
         log.info("Получаем все книги, отсортированные по наличию на складе");
-        Collection<BookResponseDto> books = bookService.getAllBooks(new Comparator<Book>() {
-            @Override
-            public int compare(Book o1, Book o2) {
-                if (o1.getStatus() == BookStatus.AVAILABLE && o2.getStatus() != BookStatus.AVAILABLE) {
-                    return -1;
-                } else if (o1.getStatus() != BookStatus.AVAILABLE && o2.getStatus() == BookStatus.AVAILABLE) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            }
-        });
+        Collection<BookResponseDto> books = bookService.getAllBooks(0, 10, BookSortField.STATUS);
         System.out.println(books);
         log.info("Получено книг по наличию на складе: {}", books.size());
     }
@@ -82,11 +71,11 @@ public class ConsoleBookController {
         log.info("Получена книга с id={}", book.id());
     }
 
-    public void updateBook(Book book) {
-        log.info("Обновляем книгу с id={}", book.getId());
-        BookResponseDto response = bookService.updateBook(book);
+    public void updateBook(BookUpdateDto dto) {
+        log.info("Обновляем книгу с id={}", dto.id());
+        BookResponseDto response = bookService.updateBook(dto);
         System.out.println(response);
-        log.info("Книга обновлена с id={}", book.getId());
+        log.info("Книга обновлена с id={}", dto.id());
     }
 
     public void deleteBook(long bookId) {
@@ -97,7 +86,7 @@ public class ConsoleBookController {
 
     public void changeBookStatusToAbsent(long bookId) {
         log.info("Меняем статус книги на ABSENT, id={}", bookId);
-        bookService.makeBookAbsent(bookId);
+        bookService.changeBookStatus(bookId, BookStatus.ABSENT);
         log.info("Статус книги изменён на ABSENT, id={}", bookId);
     }
 

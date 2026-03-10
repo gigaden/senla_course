@@ -4,6 +4,7 @@ import ebookstore.dto.bookrequest.BookRequestCreateDto;
 import ebookstore.dto.bookrequest.BookRequestDto;
 import ebookstore.dto.bookrequest.RequestDto;
 import ebookstore.model.enums.BookRequestStatus;
+import ebookstore.model.enums.RequestSortField;
 import ebookstore.service.BookRequestService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
-import java.util.Comparator;
 
 /**
  * Контроллер обрабатывает запросы, связанные с запросами на книги
@@ -80,29 +80,19 @@ public class BookRequestController {
     }
 
     /**
-     * Эндпоинт для получения всех запросов, отсортированных по количеству запросов (по убыванию)
+     * Эндпоинт для получения всех запросов
      *
      * @return коллекция запросов
      */
-    @GetMapping("/by_count")
-    public ResponseEntity<Collection<RequestDto>> getAllRequestsByCount() {
-        log.info("Получение запросов, отсортированных по количеству (по убыванию)");
+    @GetMapping()
+    public ResponseEntity<Collection<RequestDto>> getAllRequests(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "TITLE") String sort) {
+        log.info("Получение запросов page={}, size={}, sort={}", page, size, sort);
+        RequestSortField sortField = RequestSortField.fromString(sort);
         Collection<RequestDto> requests = requestService
-                .getSortedRequest(Comparator.comparing(RequestDto::requestCount).reversed());
-
-        return new ResponseEntity<>(requests, HttpStatus.OK);
-    }
-
-    /**
-     * Эндпоинт для получения всех запросов, отсортированных по названию книги
-     *
-     * @return коллекция запросов
-     */
-    @GetMapping("/by_title")
-    public ResponseEntity<Collection<RequestDto>> getAllRequestsByTitle() {
-        log.info("Получение запросов, отсортированных по названию книги");
-        Collection<RequestDto> requests = requestService
-                .getSortedRequest(Comparator.comparing(RequestDto::bookTitle));
+                .getAll(page, size, sortField);
 
         return new ResponseEntity<>(requests, HttpStatus.OK);
     }
