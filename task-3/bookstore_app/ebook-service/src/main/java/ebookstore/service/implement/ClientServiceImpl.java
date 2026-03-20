@@ -12,6 +12,7 @@ import ebookstore.service.ClientService;
 import ebookstore.service.csv.writer.ClientCsvExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -30,11 +31,14 @@ public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
     private final ClientCsvExporter clientCsvExporter;
+    private final PasswordEncoder passwordEncoder;
 
     public ClientServiceImpl(ClientRepository clientRepository,
-                             ClientCsvExporter clientCsvExporter) {
+                             ClientCsvExporter clientCsvExporter,
+                             PasswordEncoder passwordEncoder) {
         this.clientRepository = clientRepository;
         this.clientCsvExporter = clientCsvExporter;
+        this.passwordEncoder = passwordEncoder;
     }
 
     private static final Logger log = LoggerFactory.getLogger(ClientServiceImpl.class);
@@ -43,6 +47,7 @@ public class ClientServiceImpl implements ClientService {
     @Transactional
     public ClientResponseDto saveClient(ClientCreateDto dto) {
         Client savedClient = clientRepository.saveClient(ClientMapper.mapDtoCreateToClient(dto));
+        savedClient.setPassword(passwordEncoder.encode(savedClient.getPassword()));
         ClientResponseDto response = ClientMapper.mapClientToResponseDto(savedClient);
         log.info("Сохранили клиента {}", response);
 

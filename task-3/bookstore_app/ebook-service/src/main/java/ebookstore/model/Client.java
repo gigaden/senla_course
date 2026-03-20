@@ -1,7 +1,10 @@
 package ebookstore.model;
 
+import ebookstore.model.enums.ClientRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,6 +24,8 @@ public class Client implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @Column(nullable = false)
+    private String username;
+    @Column(nullable = false)
     private String name;
     @Column(nullable = false)
     private String surname;
@@ -30,16 +35,21 @@ public class Client implements Serializable {
     private String login;
     @Column(nullable = false)
     private String password;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ClientRole role;
 
     public Client() {
     }
 
-    public Client(String name, String surname, String email, String login, String password) {
+    public Client(String username, String name, String surname, String email, String login, String password, ClientRole role) {
         this.name = name;
         this.surname = surname;
         this.email = email;
         this.login = login;
         this.password = password;
+        this.role = role;
+        this.username = username;
     }
 
     public long getId() {
@@ -88,6 +98,22 @@ public class Client implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public ClientRole getRole() {
+        return role;
+    }
+
+    public void setRole(ClientRole role) {
+        this.role = role;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     @Override

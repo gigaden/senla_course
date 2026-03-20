@@ -10,6 +10,9 @@
             <column name="id" type="BIGSERIAL">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+            <column name="username" type="VARCHAR(256)">
+<!--                <constraints nullable="false"/>-->
+            </column>
             <column name="name" type="VARCHAR(256)">
                 <constraints nullable="false"/>
             </column>
@@ -25,7 +28,16 @@
             <column name="password" type="VARCHAR(256)">
                 <constraints nullable="false"/>
             </column>
+            <column name="role" type="VARCHAR(128)">
+<!--                <constraints nullable="false"/>-->
+            </column>
         </createTable>
+
+<!--        <sql>-->
+<!--            ALTER TABLE clients-->
+<!--                ADD CONSTRAINT ch_role-->
+<!--                    CHECK (role IN ('USER', 'ADMIN'));-->
+<!--        </sql>-->
 
         <rollback>
             <dropTable tableName="clients"/>

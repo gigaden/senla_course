@@ -2,6 +2,7 @@ package ebookstore.service.csv.reader;
 
 import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.dto.client.ClientUpdateDto;
+import ebookstore.model.enums.ClientRole;
 import ebookstore.service.ClientService;
 import org.springframework.stereotype.Service;
 
@@ -59,19 +60,21 @@ public class ClientCsvReader {
                 }
 
                 long id = Long.parseLong(clientArr.get(0).trim());
-                String name = clientArr.get(1).trim();
-                String surname = clientArr.get(2).trim();
-                String email = clientArr.get(3).trim();
-                String login = clientArr.get(4).trim();
-                String password = clientArr.get(5).trim();
+                String username = clientArr.get(1).trim();
+                String name = clientArr.get(2).trim();
+                String surname = clientArr.get(3).trim();
+                String email = clientArr.get(4).trim();
+                String login = clientArr.get(5).trim();
+                String password = clientArr.get(6).trim();
+                String role = clientArr.get(7).trim();
 
-                ClientUpdateDto client = new ClientUpdateDto(id, name, surname, email, login, password);
+                ClientUpdateDto client = new ClientUpdateDto(id, username, name, surname, email, login, password, ClientRole.valueOf(role));
 
                 if (clientService.checkClientIsExist(id)) {
                     clientService.updateClient(client);
                     System.out.println("Обновлен клиент: " + name + " " + surname);
                 } else {
-                    clientService.saveClient(new ClientCreateDto(name, surname, email, login, password));
+                    clientService.saveClient(new ClientCreateDto(username, name, surname, email, login, password));
                     System.out.println("Добавлен клиент: " + name + " " + surname);
                 }
                 successCount++;

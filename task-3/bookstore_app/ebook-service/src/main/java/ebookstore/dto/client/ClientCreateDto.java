@@ -4,7 +4,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record ClientCreateDto(@NotBlank @Size(min = 5, max = 256, message = "Имя должно быть от 5 до 256 символов")
+public record ClientCreateDto(
+        @NotBlank @Size(min = 5, max = 256, message = "Логин должен быть от 5 до 256 символов")
+        String username,
+        @NotBlank @Size(min = 5, max = 256, message = "Имя должно быть от 5 до 256 символов")
                               String name,
 
                               @NotBlank @Size(min = 5, max = 256, message = "Фамилия должна быть от 5 до 256 символов")

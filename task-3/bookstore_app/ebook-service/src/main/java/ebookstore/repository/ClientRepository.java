@@ -18,4 +18,6 @@ public interface ClientRepository {
     void deleteClient(long clientId);
 
     boolean checkClientIsExist(long bookId);
+
+    Optional<Client> findClientByUserName(String username);
 }
