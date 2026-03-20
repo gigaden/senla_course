@@ -2,6 +2,8 @@ package ebookstore.repository.implement.hiber;
 
 import ebookstore.model.Client;
 import ebookstore.repository.ClientRepository;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
@@ -13,8 +15,11 @@ import java.util.stream.Collectors;
 @Primary
 public class ClientRepositoryHiber extends BaseRepositoryHiber<Client, Long> implements ClientRepository {
 
-    public ClientRepositoryHiber() {
+    private final SessionFactory sessionFactory;
+
+    public ClientRepositoryHiber(SessionFactory sessionFactory) {
         super(Client.class);
+        this.sessionFactory = sessionFactory;
     }
 
     @Override
@@ -46,5 +51,19 @@ public class ClientRepositoryHiber extends BaseRepositoryHiber<Client, Long> imp
     @Override
     public boolean checkClientIsExist(long bookId) {
         return exists(bookId);
+    }
+
+    @Override
+    public Optional<Client> findClientByUserName(String username) {
+        try (Session session = sessionFactory.openSession()) {
+            Client client = session.createQuery("""
+                            SELECT c FROM Client c
+                            WHERE c.username = :username
+                            """, Client.class)
+                    .setParameter("username", username)
+                    .uniqueResultOptional()
+                    .orElse(null);
+            return Optional.ofNullable(client);
+        }
     }
 }

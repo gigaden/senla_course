@@ -1,5 +1,6 @@
 package ebookstore.dto.client;
 
+import ebookstore.model.enums.ClientRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,6 +8,8 @@ import jakarta.validation.constraints.Size;
 
 public record ClientUpdateDto(@NotNull(message = "Укажите id клиента")
                               Long id,
+                              @NotBlank @Size(min = 5, max = 256, message = "Логин должен быть от 5 до 256 символов")
+                              String username,
                               @NotBlank @Size(min = 5, max = 256, message = "Имя должно быть от 5 до 256 символов")
                               String name,
 
@@ -20,5 +23,8 @@ public record ClientUpdateDto(@NotNull(message = "Укажите id клиент
                               String login,
 
                               @NotBlank @Size(min = 5, max = 512, message = "Пароль должен быть от 5 до 512 символов")
-                              String password) {
+                              String password,
+
+                              @NotNull(message = "Роль должна быть указана")
+                              ClientRole role) {
 }

@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,6 +49,7 @@ public class OrderController {
      * @param order - дто для создания заказа
      * @return созданный заказ
      */
+    @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseEntity<OrderResponseDto> createOrder(@RequestBody @Valid OrderCreateDto order) {
         log.info("Создание нового заказа");
@@ -62,6 +64,7 @@ public class OrderController {
      * @param id - идентификатор заказа
      * @return заказ
      */
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponseDto> getOrder(@PathVariable long id) {
         log.info("Получение заказа с id={}", id);
@@ -76,6 +79,7 @@ public class OrderController {
      * @param id - идентификатор заказа
      * @return детали заказа
      */
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @GetMapping("/{id}/details")
     public ResponseEntity<OrderDetailsDto> getOrderDetails(@PathVariable long id) {
         log.info("Получение деталей заказа id={}", id);
@@ -90,6 +94,7 @@ public class OrderController {
      * @param order - дто для обновления заказа
      * @return обновлённый заказ
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping
     public ResponseEntity<OrderResponseDto> updateOrder(@RequestBody @Valid OrderUpdateDto order) {
         log.info("Обновление заказа с id={}", order.id());
@@ -104,6 +109,7 @@ public class OrderController {
      * @param id     - идентификатор заказа
      * @param status - новый статус
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<String> changeOrderStatus(@PathVariable long id,
                                                     @RequestParam OrderStatus status) {
@@ -118,6 +124,7 @@ public class OrderController {
      *
      * @param id - идентификатор заказа
      */
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/{id}/cancel")
     public ResponseEntity<String> cancelOrder(@PathVariable long id) {
         log.info("Отмена заказа id={}", id);
@@ -131,6 +138,7 @@ public class OrderController {
      *
      * @return коллекция заказов
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<Collection<OrderResponseDto>> getAll(
             @RequestParam(defaultValue = "0") int page,
@@ -151,6 +159,7 @@ public class OrderController {
      * @param sort  - тип сортировки (date или price)
      * @return коллекция выполненных заказов
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/completed")
     public ResponseEntity<Collection<OrderResponseDto>> getCompletedOrders(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
@@ -176,6 +185,7 @@ public class OrderController {
      * @param end   - конец периода
      * @return сумма заработка
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/earnings")
     public ResponseEntity<Double> getEarnedAmount(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
@@ -193,6 +203,7 @@ public class OrderController {
      * @param end   - конец периода
      * @return количество заказов
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/count")
     public ResponseEntity<Integer> getCompletedOrdersCount(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,

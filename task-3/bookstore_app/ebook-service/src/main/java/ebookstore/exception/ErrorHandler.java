@@ -9,6 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -65,6 +68,21 @@ public class ErrorHandler {
         log.error("Ошибка  400 {}: {} в запросе {}",
                 e.getClass(), e.getMessage(), request.getDescription(false));
         return buildErrorResponse(e, HttpStatus.BAD_REQUEST, "Неверный формат запроса");
+    }
+
+    @ExceptionHandler({
+            BadCredentialsException.class,
+            AuthenticationCredentialsNotFoundException.class
+    })
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Map<String, String> handleAuth(Exception e, WebRequest request) {
+        return buildErrorResponse(e, HttpStatus.UNAUTHORIZED, "Ошибка аутентификации");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Map<String, String> handleAccess(Exception e, WebRequest request) {
+        return buildErrorResponse(e, HttpStatus.FORBIDDEN, "Недостаточно прав");
     }
 
     public Map<String, String> buildErrorResponse(Exception e, HttpStatus status, String reason) {

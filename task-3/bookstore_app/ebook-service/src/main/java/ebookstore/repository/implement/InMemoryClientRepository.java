@@ -65,6 +65,11 @@ public class InMemoryClientRepository implements ClientRepository, Serializable 
         return clients.containsKey(clientId);
     }
 
+    @Override
+    public Optional<Client> findClientByUserName(String username) {
+        return Optional.empty();
+    }
+
     private long generateId() {
         return clientId++;
     }

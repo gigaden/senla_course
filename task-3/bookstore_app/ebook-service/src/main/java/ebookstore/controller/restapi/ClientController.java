@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,6 +54,7 @@ public class ClientController {
      *
      * @return коллекция клиентов
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<Collection<ClientResponseDto>> getAllClients() {
         log.info("Получение всех клиентов");
@@ -67,6 +69,7 @@ public class ClientController {
      * @param id - идентификатор клиента
      * @return клиент
      */
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<ClientResponseDto> getClient(@PathVariable long id) {
         log.info("Получение клиента с id={}", id);
@@ -81,6 +84,7 @@ public class ClientController {
      * @param dto - дто для обновления клиента
      * @return обновлённый клиент
      */
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @PutMapping
     public ResponseEntity<ClientResponseDto> updateClient(@RequestBody @Valid ClientUpdateDto dto) { // не забыть дто добавить
         log.info("Обновление клиента с id={}", dto.id());
@@ -94,6 +98,7 @@ public class ClientController {
      *
      * @param id - идентификатор клиента
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteClient(@PathVariable long id) {
         log.info("Удаление клиента с id={}", id);

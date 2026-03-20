@@ -136,7 +136,7 @@ public class OrderRepositoryDao extends BaseRepositoryDao implements OrderReposi
         Book book = new Book(null, null, null, null, 0);
         book.setId(rs.getLong("book_id"));
 
-        Client client = new Client(null, null, null, null, null);
+        Client client = new Client(null, null, null, null, null, null, null);
         client.setId(rs.getLong("client_id"));
 
         order.setBook(book);
