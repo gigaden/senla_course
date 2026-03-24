@@ -4,6 +4,7 @@ import ebookstore.dto.client.ClientCreateDto;
 import ebookstore.dto.client.ClientResponseDto;
 import ebookstore.dto.client.ClientUpdateDto;
 import ebookstore.model.Client;
+import ebookstore.model.enums.ClientRole;
 
 /**
  * Маппер для юзеров
@@ -35,11 +36,13 @@ public final class ClientMapper {
      */
     public static Client mapDtoCreateToClient(ClientCreateDto dto) {
         return new Client(
+                dto.username(),
                 dto.name(),
                 dto.surname(),
                 dto.email(),
                 dto.login(),
-                dto.password()
+                dto.password(),
+                ClientRole.ROLE_USER
         );
     }
 
@@ -51,11 +54,13 @@ public final class ClientMapper {
      */
     public static Client mapClientUpdateToClient(ClientUpdateDto dto) {
         return new Client(
+                dto.username(),
                 dto.name(),
                 dto.surname(),
                 dto.email(),
                 dto.login(),
-                dto.password()
+                dto.password(),
+                dto.role()
         );
     }
 }

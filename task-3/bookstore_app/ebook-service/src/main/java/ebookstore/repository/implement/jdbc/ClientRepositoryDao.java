@@ -1,6 +1,7 @@
 package ebookstore.repository.implement.jdbc;
 
 import ebookstore.model.Client;
+import ebookstore.model.enums.ClientRole;
 import ebookstore.repository.ClientRepository;
 import ebookstore.util.ConnectionManager;
 import org.springframework.stereotype.Component;
@@ -95,13 +96,20 @@ public class ClientRepositoryDao extends BaseRepositoryDao implements ClientRepo
         return exists(EXISTS_CLIENT_QUERY, clientId);
     }
 
+    @Override
+    public Optional<Client> findClientByUserName(String username) {
+        return Optional.empty();
+    }
+
     private Client createClientFromResultSet(ResultSet rs) throws SQLException {
         Client client = new Client(
+                rs.getString("username"),
                 rs.getString("name"),
                 rs.getString("surname"),
                 rs.getString("email"),
                 rs.getString("login"),
-                rs.getString("password")
+                rs.getString("password"),
+                ClientRole.valueOf(rs.getString("role"))
         );
         client.setId(rs.getLong("id"));
         return client;

@@ -118,83 +118,113 @@
         <comment>Insert test data for clients table</comment>
 
         <insert tableName="clients">
+            <column name="username" value="client1"/>
             <column name="name" value="Иван"/>
             <column name="surname" value="Иванов"/>
             <column name="email" value="ivanov@example.com"/>
             <column name="login" value="ivanov"/>
-            <column name="password" value="password123"/>
+            <column name="password"
+                    value="$2a$10$uz6/KiiRxYzyMfmnKBkTZevz8uASPULEGWx9Ksn/Xy9N8mT/cTn4."/><!--password123-->
+            <column name="role" value="ROLE_USER"/>
         </insert>
 
         <insert tableName="clients">
+            <column name="username" value="client2"/>
             <column name="name" value="Петр"/>
             <column name="surname" value="Петров"/>
             <column name="email" value="petrov@example.com"/>
             <column name="login" value="petrov"/>
-            <column name="password" value="pass123"/>
+            <column name="password"
+                    value="$2a$10$uz6/KiiRxYzyMfmnKBkTZevz8uASPULEGWx9Ksn/Xy9N8mT/cTn4."/><!--password123-->
+            <column name="role" value="ROLE_USER"/>
         </insert>
 
         <insert tableName="clients">
+            <column name="username" value="client3"/>
             <column name="name" value="Сергей"/>
             <column name="surname" value="Сергеев"/>
             <column name="email" value="sergeev@example.com"/>
             <column name="login" value="sergeev"/>
-            <column name="password" value="qwerty"/>
+            <column name="password"
+                    value="$2a$10$uz6/KiiRxYzyMfmnKBkTZevz8uASPULEGWx9Ksn/Xy9N8mT/cTn4."/><!--password123-->
+            <column name="role" value="ROLE_USER"/>
         </insert>
 
         <insert tableName="clients">
+            <column name="username" value="client4"/>
             <column name="name" value="Анна"/>
             <column name="surname" value="Сидорова"/>
             <column name="email" value="sidorova@example.com"/>
             <column name="login" value="sidorova"/>
-            <column name="password" value="anna123"/>
+            <column name="password"
+                    value="$2a$10$uz6/KiiRxYzyMfmnKBkTZevz8uASPULEGWx9Ksn/Xy9N8mT/cTn4."/><!--password123-->
+            <column name="role" value="ROLE_USER"/>
         </insert>
 
         <insert tableName="clients">
+            <column name="username" value="client5"/>
             <column name="name" value="Мария"/>
             <column name="surname" value="Кузнецова"/>
             <column name="email" value="kuznetsova@example.com"/>
             <column name="login" value="kuznetsova"/>
-            <column name="password" value="maria_pass"/>
+            <column name="password"
+                    value="$2a$10$uz6/KiiRxYzyMfmnKBkTZevz8uASPULEGWx9Ksn/Xy9N8mT/cTn4."/><!--password123-->
+            <column name="role" value="ROLE_USER"/>
         </insert>
 
         <insert tableName="clients">
+            <column name="username" value="client6"/>
             <column name="name" value="Алексей"/>
             <column name="surname" value="Попов"/>
             <column name="email" value="popov@example.com"/>
             <column name="login" value="popov"/>
-            <column name="password" value="alexey123"/>
+            <column name="password"
+                    value="$2a$10$uz6/KiiRxYzyMfmnKBkTZevz8uASPULEGWx9Ksn/Xy9N8mT/cTn4."/><!--password123-->
+            <column name="role" value="ROLE_USER"/>
         </insert>
 
         <insert tableName="clients">
+            <column name="username" value="client7"/>
             <column name="name" value="Елена"/>
             <column name="surname" value="Васильева"/>
             <column name="email" value="vasileva@example.com"/>
             <column name="login" value="vasileva"/>
-            <column name="password" value="elena_pass"/>
+            <column name="password"
+                    value="$2a$10$uz6/KiiRxYzyMfmnKBkTZevz8uASPULEGWx9Ksn/Xy9N8mT/cTn4."/><!--password123-->
+            <column name="role" value="ROLE_USER"/>
         </insert>
 
         <insert tableName="clients">
+            <column name="username" value="client8"/>
             <column name="name" value="Дмитрий"/>
             <column name="surname" value="Смирнов"/>
             <column name="email" value="smirnov@example.com"/>
             <column name="login" value="smirnov"/>
-            <column name="password" value="dmitry123"/>
+            <column name="password"
+                    value="$2a$10$uz6/KiiRxYzyMfmnKBkTZevz8uASPULEGWx9Ksn/Xy9N8mT/cTn4."/><!--password123-->
+            <column name="role" value="ROLE_USER"/>
         </insert>
 
         <insert tableName="clients">
+            <column name="username" value="client9"/>
             <column name="name" value="Ольга"/>
             <column name="surname" value="Морозова"/>
             <column name="email" value="morozova@example.com"/>
             <column name="login" value="morozova"/>
-            <column name="password" value="olga_pass"/>
+            <column name="password"
+                    value="$2a$10$uz6/KiiRxYzyMfmnKBkTZevz8uASPULEGWx9Ksn/Xy9N8mT/cTn4."/><!--password123-->
+            <column name="role" value="ROLE_USER"/>
         </insert>
 
         <insert tableName="clients">
+            <column name="username" value="client10"/>
             <column name="name" value="Николай"/>
             <column name="surname" value="Новиков"/>
             <column name="email" value="novikov@example.com"/>
             <column name="login" value="novikov"/>
-            <column name="password" value="nikolay123"/>
+            <column name="password"
+                    value="$2a$10$uz6/KiiRxYzyMfmnKBkTZevz8uASPULEGWx9Ksn/Xy9N8mT/cTn4."/><!--password123-->
+            <column name="role" value="ROLE_USER"/>
         </insert>
 
         <rollback>

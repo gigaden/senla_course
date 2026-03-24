@@ -12,6 +12,7 @@ import ebookstore.exception.notfound.ClientNotFoundException;
 import ebookstore.exception.notfound.OrderNotFoundException;
 import ebookstore.model.Book;
 import ebookstore.model.Client;
+import ebookstore.model.enums.ClientRole;
 import ebookstore.model.enums.OrderStatus;
 import org.springframework.stereotype.Component;
 
@@ -194,7 +195,7 @@ public class MenuController {
             System.out.println("Введите ID книги:");
             long bookId = Long.parseLong(scanner.nextLine());
 
-            Client client = new Client("", "", "", "", "");
+            Client client = new Client("", "", "", "", "", "", ClientRole.ROLE_USER);
             client.setId(clientId);
 
             Book book = new Book("", "", "", LocalDate.now(), 0.0);

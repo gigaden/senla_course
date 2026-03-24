@@ -11,10 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,7 +42,8 @@ public class BookRequestController {
      * @param request - дто для создания запроса
      * @return созданный запрос
      */
-    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/stale")
     public ResponseEntity<BookRequestDto> createRequest(@RequestBody @Valid BookRequestCreateDto request) {
         log.info("Создание запроса на книгу");
         BookRequestDto response = requestService.createRequest(request);
@@ -56,6 +57,7 @@ public class BookRequestController {
      * @param id - идентификатор запроса
      * @return запрос
      */
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<BookRequestDto> getRequest(@PathVariable long id) {
         log.info("Получение запроса с id={}", id);
@@ -70,6 +72,7 @@ public class BookRequestController {
      * @param id     - идентификатор запроса
      * @param status - новый статус
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<String> changeRequestStatus(@PathVariable long id,
                                                       @RequestParam BookRequestStatus status) {
@@ -84,7 +87,8 @@ public class BookRequestController {
      *
      * @return коллекция запросов
      */
-    @GetMapping()
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
     public ResponseEntity<Collection<RequestDto>> getAllRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
