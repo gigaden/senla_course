@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+    <changeSet id="1-create-account" author="gigaden">
+
+        <createTable tableName="account">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="balance" type="NUMERIC"/>
+        </createTable>
+
+    </changeSet>
+
+    <changeSet id="2-create-transfer" author="gigaden">
+
+        <createTable tableName="transfer">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="from_account_id" type="BIGINT"/>
+            <column name="to_account_id" type="BIGINT"/>
+            <column name="amount" type="NUMERIC"/>
+            <column name="status" type="VARCHAR(50)"/>
+        </createTable>
+
+    </changeSet>
+
+    <changeSet id="3-insert-accounts" author="gigaden">
+
+        <sql>
+            INSERT INTO account (balance)
+            SELECT 10000 FROM generate_series(1, 1000);
+        </sql>
+
+    </changeSet>
+
+</databaseChangeLog>
