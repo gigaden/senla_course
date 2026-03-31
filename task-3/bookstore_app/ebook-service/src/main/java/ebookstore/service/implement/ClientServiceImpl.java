@@ -46,8 +46,9 @@ public class ClientServiceImpl implements ClientService {
     @Override
     @Transactional
     public ClientResponseDto saveClient(ClientCreateDto dto) {
+        Client client = ClientMapper.mapDtoCreateToClient(dto);
+        client.setPassword(passwordEncoder.encode(client.getPassword()));
         Client savedClient = clientRepository.saveClient(ClientMapper.mapDtoCreateToClient(dto));
-        savedClient.setPassword(passwordEncoder.encode(savedClient.getPassword()));
         ClientResponseDto response = ClientMapper.mapClientToResponseDto(savedClient);
         log.info("Сохранили клиента {}", response);
 
